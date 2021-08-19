@@ -1,0 +1,34 @@
+version: "3.4"
+services:
+
+    racedb:
+        image: esitarski/racedb:latest
+        restart: always
+        container_name: racedb_app
+        ports:
+            - "8080:8000"
+        environment:
+            - sqlite3_database_fname:/racedb-data/RaceDB.sqlite3
+            - PYTHONPATH:/RaceDB
+            - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
+        env_file:
+            - ./racedb.env
+        hostname: racedb.local
+        networks:
+            racedb:
+        depends_on:
+            - db
+        volumes:
+            - postgresql-racedb-data:/var/lib/postgresql/data
+            - postgresql-racedb-varrun:/var/run/postgresql
+            - ./racedb-data:/racedb-data
+
+
+#volumes:
+#    postgresql-racedb-data:
+#    postgresql-racedb-varrun:
+
+networks:
+    racedb:
+
+

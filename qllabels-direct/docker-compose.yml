@@ -1,0 +1,34 @@
+#
+# docker-qllabels-direct/docker-compose.yml
+# Copyright (c) 2021 stuart.lynne@gmail.com
+# vim: tabstop=4 shiftwidth=4 expandtab
+#
+# Build one containers:
+#
+#   qllabels_direct - QLABELS.py configured to print directly to Brother QL Printers
+#
+# N.B. Printing directly to Brother QL Printers is not supported and not prevented.
+#
+# This configuration should only be used when the printers are dedicated, specifically
+# each registration station would need its own printer(s)!
+#
+# RaceDB Configuration: ssh racedb@qllabels.local QLLABELS.py $1
+
+version: '3.4'
+
+services:
+
+    qllabels_direct:
+        image: stuartlynne/qllabels:0.1
+        container_name: qllabels_direct
+        hostname: qllabels.local
+        restart: always
+        networks:
+            racedb:
+        volumes:
+            - ../qllabels-direct/qllabels-direct.cfg:/usr/local/etc/qllabels.cfg
+        environment:
+            PYTHONUNBUFFERED: 1
+
+networks:
+    racedb:
