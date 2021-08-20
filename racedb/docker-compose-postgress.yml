@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.6"
 services:
     db:
         image: postgres:11-alpine
@@ -10,15 +10,11 @@ services:
             racedb:
         hostname: postgresql_db_app.local
         volumes:
-            - ./racedb/postgresql-racedb-data:/var/lib/postgresql/data
-            - ./racedb/postgresql-racedb-varrun:/var/run/postgresql
+            - postgresql-racedb-data:/var/lib/postgresql/data
+            - postgresql-racedb-varrun:/var/run/postgresql
 
 
 volumes:
     postgresql-racedb-data:
     postgresql-racedb-varrun:
-
-networks:
-    racedb:
-
 

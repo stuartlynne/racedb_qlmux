@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.6"
 services:
 
     racedb_8081:
@@ -21,8 +21,4 @@ services:
         volumes:
             - postgresql-racedb-data:/var/lib/postgresql/data
             - postgresql-racedb-varrun:/var/run/postgresql
-            - ./racedb/racedb-data:/racedb-data
-
-networks:
-    racedb:
-
+            - ./racedb-data:/racedb-data

@@ -2,6 +2,7 @@
 #set -x
 
 DOCKERCMD="docker-compose 
+    -f ./racedb/docker-compose-network.yml 
     -f ./racedb/docker-compose-8080.yml 
     -f ./racedb/docker-compose-8081.yml 
     -f ./racedb/docker-compose-postgress.yml 

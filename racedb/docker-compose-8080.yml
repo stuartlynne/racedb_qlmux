@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.6"
 services:
 
     racedb_8080:
@@ -11,6 +11,7 @@ services:
             - sqlite3_database_fname:/racedb-data/RaceDB.sqlite3
             - PYTHONPATH:/RaceDB
             - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
+            - DISPLAY=${DISPLAY}
         env_file:
             - ./racedb_8080.env
         hostname: racedb_8080.local
@@ -21,9 +22,5 @@ services:
         volumes:
             - postgresql-racedb-data:/var/lib/postgresql/data
             - postgresql-racedb-varrun:/var/run/postgresql
-            - ./racedb/racedb-data:/racedb-data
-
-networks:
-    racedb:
-
+            - ./racedb-data:/racedb-data
 

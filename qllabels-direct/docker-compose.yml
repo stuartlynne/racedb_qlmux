@@ -14,7 +14,7 @@
 #
 # RaceDB Configuration: ssh racedb@qllabels.local QLLABELS.py $1
 
-version: '3.4'
+version: '3.6'
 
 services:
 
@@ -29,6 +29,3 @@ services:
             - ../qllabels-direct/qllabels-direct.cfg:/usr/local/etc/qllabels.cfg
         environment:
             PYTHONUNBUFFERED: 1
-
-networks:
-    racedb:
