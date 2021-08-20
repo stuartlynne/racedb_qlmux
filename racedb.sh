@@ -26,9 +26,17 @@ restart() {
     run
 }
 
+pull() {
+    checkconfig
+    echo "Starting RaceDB Container set..."
+    set -x
+    $DOCKERCMD pull
+}
+
 run() {
     checkconfig
     echo "Starting RaceDB Container set..."
+    set -x
     $DOCKERCMD up -d
 }
 
@@ -206,6 +214,7 @@ reader() {
 
 usage() {
     echo "Commands:"
+    echo "pull - pull images"
     echo "run - start the racedb container"
     echo "stop - stop the racedb container"
     echo "restart - stop and restart the racedb container"
@@ -225,6 +234,8 @@ CMD=$1
 shift
 case $CMD in
     "dbconfig") checkconfig
+        ;;
+    "pull") pull
         ;;
     "run" | "start") run
         ;;
