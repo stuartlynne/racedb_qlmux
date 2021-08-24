@@ -3,6 +3,8 @@ services:
 
     racedb_8081:
         image: esitarski/racedb:latest
+        #image: esitarski/racedb:beta
+        #image: local/racedb
         restart: always
         container_name: racedb_8081_app
         ports:
@@ -12,13 +14,13 @@ services:
             - PYTHONPATH:/RaceDB
             - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
         env_file:
-            - ./racedb_8081.env
+            - ../racedb/racedb_8081.env
         hostname: racedb_8081.local
         networks:
             racedb:
         depends_on:
             - db
         volumes:
-            - postgresql-racedb-data:/var/lib/postgresql/data
+#            - postgresql-racedb-data:/var/lib/postgresql/data
             - postgresql-racedb-varrun:/var/run/postgresql
-            - ./racedb-data:/racedb-data
+            - ../racedb/racedb-data:/racedb-data

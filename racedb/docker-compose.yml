@@ -12,14 +12,14 @@ services:
             - PYTHONPATH:/RaceDB
             - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
         env_file:
-            - ./racedb.env
+            - ../racedb/racedb.env
         hostname: racedb.local
         networks:
             racedb:
         depends_on:
             - db
         volumes:
-            - postgresql-racedb-data:/var/lib/postgresql/data
+#            - postgresql-racedb-data:/var/lib/postgresql/data
             - postgresql-racedb-varrun:/var/run/postgresql
             - ./racedb-data:/racedb-data
 
