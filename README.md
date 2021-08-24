@@ -21,11 +21,11 @@ and bib numbers on small and large labels.
 See the first few lines of *racedb.sh*:
 
 ```
-DOCKERCMD="docker-compose 
-    -f ./docker-racedb/docker-compose-8080.yml 
-    -f ./docker-racedb/docker-compose-8081.yml 
-    -f ./docker-racedb/docker-compose-postgress.yml 
-    -f ./docker-qllabels-qlmuxd/docker-compose.yml"
+PRIMARY="docker-compose 
+    -f ./postgres/docker-compose-primary.yml 
+    -f ./racedb/docker-compose-8080.yml 
+    -f ./racedb/docker-compose-8081.yml 
+    -f ./qllabels-qlmuxd/docker-compose.yml"
 ```
 
 This specifies which *docker-compose.yml* files your use of *RaceDB* requires.
@@ -35,13 +35,13 @@ This specifies which *docker-compose.yml* files your use of *RaceDB* requires.
 These implement one or more *RaceDB* services.
 
 These are copies of the original docker-compse.yml files from *RaceDB* with
-the *postgress* portion removed, and each specifying a different host port
+the *postgres* portion removed, and each specifying a different host port
 to use, and a different *racedb-808N.env* file. The *.env* file contains
 the RFID reader configuration.
 
-## docker-racedb/docker-compose-postgress.yml
+## postgres/docker-compose-primary.yml
 
-This is the *postgress* service configuration.
+This is the *postgres* service configuration.
 
 ## docker-qllabels-qlmuxd/docker-compose.yml
 
