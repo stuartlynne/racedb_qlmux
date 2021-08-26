@@ -70,10 +70,10 @@ else
     . ./postgresql/postgresql.env
 fi
 
-if [ -z "${POSTGRESSROLL}"  -o "${POSTGRESSROLL}" = "n" ] ; then
+if [ -z "${POSTGRESSROLE}"  -o "${POSTGRESSROLE}" = "n" ] ; then
     stderr "Postgres Server Role: Primary"
     CMDLIST=$(for i in "${PRIMARY[@]}"; do echo -f "$i"; done)
-elif [ -n "${POSTGRESSROLL}"  -o "${POSTGRESSROLL}" = "y" ] ; then
+elif [ -n "${POSTGRESSROLE}"  -o "${POSTGRESSROLE}" = "y" ] ; then
     stderr "Postgres Server Role: Secondary"
     CMDLIST=$(for i in "${SECONDARY[@]}"; do echo -f "$i"; done)
 else
