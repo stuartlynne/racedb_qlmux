@@ -26,6 +26,9 @@ case "${POSTGRESQL_ROLE,,}" in
         echo "host replication "postgres" 0.0.0.0/0 trust" >> "/var/lib/postgresql/data/pg_hba.conf"
         #echo "host replication "postgres" 192.168.40.17/24 trust" >> "/var/lib/postgresql/data/pg_hba.conf"
 
+        echo "SELECT pg_create_physical_replication_slot('standby1_slot');" | psql -U postgres
+
+
         ;;
     standby)
         stderr "POSTGRESQL_ROLE standby - skipping."
