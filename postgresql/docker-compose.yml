@@ -13,6 +13,7 @@ services:
             - ../postgresql-data:/var/lib/postgresql/data
             - ../postgresql-varrun:/var/run/postgresql
             - ../postgresql/setup-master.sh:/docker-entrypoint-initdb.d/setup-master.sh
+            - ../postgresql/entrypoint.sh:/entrypoint.sh
 
         command: /entrypoint.sh
 
