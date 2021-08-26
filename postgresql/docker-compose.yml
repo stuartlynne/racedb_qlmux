@@ -6,9 +6,13 @@ services:
         container_name: postgresql_racedb
         environment:
             POSTGRES_PASSWORD: 5wHYUQ9qmttpq58EV4EG
+        env_file:
+            ../postgresql/postgresql.env
         networks:
             racedb:
         hostname: postgresql_db_app
+        ports:
+            - "5432:5432"
         volumes:
             - ../postgresql-data:/var/lib/postgresql/data
             - ../postgresql-varrun:/var/run/postgresql
