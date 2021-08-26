@@ -7,8 +7,7 @@ RACEDB=racedb_8080
 PRIMARY=(  
     ./postgresql/docker-compose.yml 
     ./racedb/docker-compose.yml 
-#    ./racedb/docker-compose-network.yml 
-#    ./racedb/docker-compose.yml 
+    ./racedb/docker-compose-network.yml 
 #    ./qllabels-qlmuxd/docker-compose.yml
 #    ./racedb/docker-compose-8080.yml 
 #    ./racedb/docker-compose-8081.yml 

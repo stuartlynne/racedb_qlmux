@@ -12,37 +12,9 @@ services:
         volumes:
             - ../postgresql-data:/var/lib/postgresql/data
             - ../postgresql-varrun:/var/run/postgresql
+            - ../postgresql/setup-master.sh:/docker-entrypoint-initdb.d/setup-master.sh
 
-#    racedb_8080:
-#        image: esitarski/racedb:latest
-#        restart: always
-#        container_name: racedb_app
-#        ports:
-#            - "8080:8000"
-#        environment:
-#            - sqlite3_database_fname:/racedb-data/RaceDB.sqlite3
-#            - PYTHONPATH:/RaceDB
-#            - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
-#            - TIME_ZONE=America/Vancouver
-#            - DATETIME_FORMAT=ISO
-#            - VERBOSITY=1
-#        #env_file:
-#        #    - ../racedb.env
-#        hostname: racedb.local
-#        networks:
-#            racedb:
-#        depends_on:
-#            - db
-#        volumes:
-#            #- ../postgresql-data:/var/lib/postgresql/data
-#            - ../postgresql-varrun:/var/run/postgresql
-#            #- ./racedb-data:/racedb-data
-#            - ../.nobackup:/racedb-data/.nobackup
-#            - ../test.json:/racedb-data/test.json
-
-volumes:
-    #postgresql-racedb-data:
-    postgresql-racedb-varrun:
+        command: /entrypoint.sh
 
 networks:
     racedb:
