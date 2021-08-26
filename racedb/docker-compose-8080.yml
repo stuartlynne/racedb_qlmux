@@ -3,8 +3,6 @@ services:
 
     racedb_8080:
         image: esitarski/racedb:latest
-        #image: esitarski/racedb:beta
-        #image: local/racedb
         restart: always
         container_name: racedb_8080_app
         ports:
@@ -13,7 +11,6 @@ services:
             - sqlite3_database_fname:/racedb-data/RaceDB.sqlite3
             - PYTHONPATH:/RaceDB
             - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
-            - DISPLAY=${DISPLAY}
         env_file:
             - ../racedb/racedb_8080.env
         hostname: racedb_8080.local

@@ -19,17 +19,17 @@ testandadd() {
 
 }
 stderr $(date)
-stderr "Test and Add: "
-testandadd /var/lib/postgresql/data/postgresql.conf "include_if_exists = 'replication.conf'"
+#stderr "Test and Add: "
+#testandadd /var/lib/postgresql/data/postgresql.conf "include_if_exists = 'replication.conf'"
 
-ROLL=${POSTGRESQLROLL,,}
-stderr "Roll: ${POSTGRESQLROLL}"
-stderr "Roll: ${ROLL}"
+ROLE=${POSTGRESQL_ROLE,,}
+stderr "Role: ${POSTGRESQL_ROLE}"
+stderr "Role: ${ROLE}"
 
 set -x
-case ${ROLL} in
+case ${ROLE} in
     master )
-        stderr "POSTGRESQLROLL master."
+        stderr "POSTGRESQL_ROLE master."
 
         # First time 
         #
@@ -40,7 +40,7 @@ case ${ROLL} in
         ;;
     standby )
 
-        stderr "POSTGRESQLROLL standby."
+        stderr "POSTGRESQL_ROLE standby."
 
         # Demoted from master or First time
         #   - verify access to master
@@ -57,7 +57,7 @@ case ${ROLL} in
         #
         ;;
     * )
-        stderr "POSTGRESQLROLL environment variable not set."
+        stderr "POSTGRESQL_ROLE environment variable not set."
         ;;
 esac 
 

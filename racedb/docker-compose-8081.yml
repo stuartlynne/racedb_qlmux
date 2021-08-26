@@ -3,8 +3,6 @@ services:
 
     racedb_8081:
         image: esitarski/racedb:latest
-        #image: esitarski/racedb:beta
-        #image: local/racedb
         restart: always
         container_name: racedb_8081_app
         ports:

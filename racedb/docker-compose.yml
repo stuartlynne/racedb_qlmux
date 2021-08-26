@@ -1,26 +1,48 @@
-version: "3.6"
+version: "3.4"
 services:
+#    db:
+#        image: postgres:13-alpine
+#        restart: always
+#        container_name: postgresql_racedb_app
+#        environment:
+#            POSTGRES_PASSWORD: 5wHYUQ9qmttpq58EV4EG
+#        networks:
+#            racedb:
+#        hostname: postgresql_db_app
+#        volumes:
+#            - ./postgresql-racedb-data:/var/lib/postgresql/data
+#            - ../postgresql-varrun:/var/run/postgresql
 
     racedb:
         image: esitarski/racedb:latest
         restart: always
-        container_name: racedb_app
+        container_name: racedb_8080
         ports:
             - "8080:8000"
         environment:
             - sqlite3_database_fname:/racedb-data/RaceDB.sqlite3
             - PYTHONPATH:/RaceDB
             - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
-        env_file:
-            - ../racedb/racedb.env
-        hostname: racedb.local
+            - TIME_ZONE=America/Vancouver
+            - DATETIME_FORMAT=ISO
+            - VERBOSITY=1
+        #env_file:
+        #    - ../racedb.env
+        hostname: racedb_8080.local
         networks:
             racedb:
         depends_on:
             - db
         volumes:
-#            - postgresql-racedb-data:/var/lib/postgresql/data
-            - postgresql-racedb-varrun:/var/run/postgresql
-            - ./racedb-data:/racedb-data
-
+            #- ../postgresql-racedb-data:/var/lib/postgresql/data
+            - ../postgresql-varrun:/var/run/postgresql
+            #- ../racedb-data:/racedb-data
+            - ../.nobackup:/racedb-data/.nobackup
+            - ../test.json:/racedb-data/test.json
+#volumes:
+#    #postgresql-racedb-data:
+#    postgresql-racedb-varrun:
+#
+#networks:
+#    racedb:
 

@@ -1,30 +1,49 @@
-version: "3.6"
+version: "3.4"
 services:
     db:
-        image: postgres:11-alpine
+        image: postgres:13-alpine
         restart: always
-        container_name: postgresql_db_app
+        container_name: postgresql_racedb
         environment:
             POSTGRES_PASSWORD: 5wHYUQ9qmttpq58EV4EG
-            POSTGRES_USER: "secondary"
-        env_file:
-            ../postgresql/postgresql.env
         networks:
             racedb:
-        ports:
-            - "5432:5432"
-        hostname: postgresql_db_app.local
+        hostname: postgresql_db_app
         volumes:
-            - ../postgresql/recovery.conf:/etc/postgresql/recovery.conf-
-            - ../postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
-            - ../postgresql/postgresql-racedb-data:/var/lib/postgresql/data
-            - postgresql-racedb-varrun:/var/run/postgresql
-            - ../postgresql/entrypoint.sh:/entrypoint.sh
-            - ../postgresql/setup-master.sh:/docker-entrypoint-initdb.d/setup-master.sh
+            - ../postgresql-data:/var/lib/postgresql/data
+            - ../postgresql-varrun:/var/run/postgresql
 
-        command: /entrypoint.sh
+#    racedb_8080:
+#        image: esitarski/racedb:latest
+#        restart: always
+#        container_name: racedb_app
+#        ports:
+#            - "8080:8000"
+#        environment:
+#            - sqlite3_database_fname:/racedb-data/RaceDB.sqlite3
+#            - PYTHONPATH:/RaceDB
+#            - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
+#            - TIME_ZONE=America/Vancouver
+#            - DATETIME_FORMAT=ISO
+#            - VERBOSITY=1
+#        #env_file:
+#        #    - ../racedb.env
+#        hostname: racedb.local
+#        networks:
+#            racedb:
+#        depends_on:
+#            - db
+#        volumes:
+#            #- ../postgresql-data:/var/lib/postgresql/data
+#            - ../postgresql-varrun:/var/run/postgresql
+#            #- ./racedb-data:/racedb-data
+#            - ../.nobackup:/racedb-data/.nobackup
+#            - ../test.json:/racedb-data/test.json
 
 volumes:
-#    postgresql-racedb-data:
+    #postgresql-racedb-data:
     postgresql-racedb-varrun:
+
+networks:
+    racedb:
 
