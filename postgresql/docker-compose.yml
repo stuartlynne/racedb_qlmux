@@ -6,18 +6,21 @@ services:
         container_name: postgresql_racedb
         environment:
             POSTGRES_PASSWORD: 5wHYUQ9qmttpq58EV4EG
+            PGDATABASE: racedb
         env_file:
             ../postgresql/postgresql.env
         networks:
             racedb:
-        hostname: postgresql_db_app
+        hostname: postgresql_racedb.local
         ports:
             - "5432:5432"
         volumes:
-            - ../postgresql-data:/var/lib/postgresql/data
             - ../postgresql-varrun:/var/run/postgresql
-            - ../postgresql/setup-master.sh:/docker-entrypoint-initdb.d/setup-master.sh
+            - ../postgresql-vardata:/var/lib/postgresql/data
+            - ../postgresql-varlib:/var/lib/postgresql
+            - ../postgresql-initdb.d:/docker-entrypoint-initdb.d
             - ../postgresql/entrypoint.sh:/entrypoint.sh
+            #- ../postgresql/restore.sh:/docker-entrypoint-initdb.d/restore.sh
 
         command: /entrypoint.sh
 
