@@ -22,4 +22,6 @@ services:
 #            - postgresql-racedb-data:/var/lib/postgresql/data
             - postgresql-racedb-varrun:/var/run/postgresql
             - ../racedb/racedb-data:/racedb-data
+            - ../.nobackup:/racedb-data/.nobackup
+
 

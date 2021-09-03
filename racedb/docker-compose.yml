@@ -23,6 +23,11 @@ services:
             - db
         volumes:
             - ../postgresql-varrun:/var/run/postgresql
+            - ../postgresql-varlib:/var/lib/postgresql
             - ../.nobackup:/racedb-data/.nobackup
-            - ../test.json:/racedb-data/test.json
+            #- ../test.json:/racedb-data/test.json
+            - ../racedb/02-postgres.sh:/docker-entrypoint-init.d/02-postgres.sh
+            - ../racedb/check.sh:/check.sh
+            - ../racedb/simple.py:/simple.py
+            - ../racedb/index.html:/var/local/www/index.html
 
