@@ -3,8 +3,12 @@
 
 ARG0=$(basename $0)
 
-RACEDB=racedb_8080
-PRIMARY=(  
+
+function stderr() {
+    echo "${*}" 1>&2
+}
+
+YMLS=(  
     ./postgresql/docker-compose.yml 
     ./racedb/docker-compose.yml 
     ./racedb/docker-compose-network.yml 
@@ -13,112 +17,255 @@ PRIMARY=(
 #    ./racedb/docker-compose-8081.yml 
     )
 
-SECONDARY=(  
-    ./postgresql/docker-compose.yml 
-    )
+
+POSTGRESS=( postgresql )
+RACEDB=( racedb_8080 racedb_8081 )
+QLMUXD=( qllabels_direct qllabels_qlmuxd )
 
 
+VARLIB="./postgresql-varlib"
+VARDATA="./postgresql-vardata"
+INITDB="./postgresql-initdb.d"
+ROLEPATH="${VARLIB}/.ROLE"
+ARGSPATH="${VARLIB}/.ARGS"
+OLDROLEPATH="${VARLIB}/.OLDROLE"
+TRIGGERPATH="${VARLIB}/trigger_file_standby_to_failover"
 
+_inspect() {
+    RUNNING="$(docker inspect -f '{{.State.Running}}' $1)"
+    stderr RUNNING: $RUNNING
+    if [ -n "${RUNNING}" -a "${RUNNING}" = "true" ] ; then stderr inspect_OK; return 0 ; 
+    else
+    stderr inspect_NOT ;  return 1; fi
+}
 
+inspect() {
+    _inspect $1 2>/dev/null > /dev/null
+    #RC=$?
+    #echo RC: $RC
+    return $?
+}
+running() {
+    #if [ "$(docker inspect -f '{{.State.Running}}' $1)" = "true" ]; then 
+    #echo RC: $RC
+    inspect $1 
+    #RC=$?
+    #if [ "$RC" -eq 0   ]; then 
+    if [ $? -eq 0   ]; then 
+        #stderr $1: OK ; 
+        return 0; 
+    else 
+        #stderr $1: NOT; 
+        return 1; 
+    fi
+}
 
-function stderr() {
-    echo "${*}" 1>&2
+checkpostgres() {
+    BOOL=0
+    for N in "${POSTGRESS[@]}"; do
+        running $N
+        if [ $? -eq 0 ] ;  then
+            if [ $BOOL -eq 1 ] ; then
+                stderr "Warning - second postgres container"
+            fi
+            stderr "Container $N running"
+            BOOL=1
+        fi
+    done
+    return $BOOL
+}
+
+checkracedb() {
+    BOOL=0
+    for N in "${RACEDB[@]}"; do
+        running $N
+        if [ $? -eq 1 ] ;  then
+            stderr "Container $N running"
+            BOOL=1
+        fi
+    done
+    return $BOOL
 }
 
 
-for i in "${PRIMARY[@]}"; do
-    [ -e "${i}" ] && continue
-    stderr
-    stderr "${ARG0}: cannot find ${i}"
-    stderr
-    exit 1
-done
+#checkpostgres
+#POSTGRESS_RUNNING=$?
+#checkracedb
+#RACEDB_RUNNING=$?
 
-rollusage() {
+#echo POSTGRESS_RUNNING: $POSTGRESS_RUNNING
+#echo RACEDB_RUNNING: $RACEDB_RUNNING
+
+running postgresql_racedb && POSTGRESQL_RACEDB_RUNNING=1 || POSTGRESQL_RACEDB_RUNNING=0
+
+#echo POSTGRESQL_RACEDB_RUNNING: $POSTGRESQL_RACEDB_RUNNING
+
+#running racedb_8080
+#running postgresql_primary
+#running postgresql_standby
+
+cmdlist() {
+
+    for i in "${YMLS[@]}"; do 
+        if [ ! -e "${i}" ] ; then
+            stderr "Cannot find $i"
+            exit 1
+        fi
+        echo -f "$i"; 
+    done
+}
+
+YMLLIST=$(cmdlist)
+
+roleusage() {
     stderr
     stderr "Postgress roll is not set."
-    stderr 
-    stderr "Use ./manage.sh primary|secondary to set database roll."
-    stderr 
+    stderr
+    stderr "Use ./manage.sh primary | standby to set database roll."
+    stderr
     exit 1
 }
 
-if [ ! -f "postgresql/postgresql.env" ] ; then
+setrole() {
 
-    if [ $# -eq 0 ] ; then
-        rollusage
-    fi
+case "${1}" in
+failover) 
+    set -x
+    touch "${TRIGGERPATH}"
+    set +x
+    ;;
+*) [ -f "${TRIGGERPATH}" ] && rm -fv "${TRIGGERPATH}" ;;
+esac
 
-    CMD=$1
-    shift
-    case $CMD in
-        "help") usage
-            ;;
-        "primary")
-            cp -v postgresql/primary.env postgresql/postgresql.env
-            ;;
-        "secondary")
-            cp -v postgresql/primary.env postgresql/postgresql.env
-            ;;
-        *)
-            rollusage
-            exit 1
-            ;;
+[ -f "${ROLEPATH}" ] && cat "${ROLEPATH}" >> "${OLDROLEPATH}"
+
+cat > "${ROLEPATH}" << EOF
+# DO NOT HAND EDIT
+# use ./manage.sh primary | hot_standby
+ROLE=$1
+EOF
+}
+
+osetargs() {
+    stderr ARGSPATH: $ARGSPATH
+    set -x
+cat << EOF > "${ARGSPATH}"
+${*}
+EOF
+    ls -ltra postgresql-varlib
+}
+
+#setargs() {
+#    stderr ARGSPATH: $ARGSPATH
+#    set -x
+#    (echo "${*}") > "${ARGSPATH}"
+#    #ls -ltra postgresql-varlib
+#}
+
+
+if [ -f "${ROLEPATH}" ] ; then
+    . "${ROLEPATH}"
+    case ${ROLE,,} in
+        primary | hot_standby | failover | restore ) ;;
+        *) ROLE=no_role ;;
     esac
-    exit 0
-else
-    . ./postgresql/postgresql.env
+    #stderr "ROLE: $ROLE"
 fi
 
-if [ -z "${POSTGRESSROLE}"  -o "${POSTGRESSROLE}" = "n" ] ; then
-    stderr "Postgres Server Role: Primary"
-    CMDLIST=$(for i in "${PRIMARY[@]}"; do echo -f "$i"; done)
-elif [ -n "${POSTGRESSROLE}"  -o "${POSTGRESSROLE}" = "y" ] ; then
-    stderr "Postgres Server Role: Secondary"
-    CMDLIST=$(for i in "${SECONDARY[@]}"; do echo -f "$i"; done)
-else
-    stderr "Postgres Server Role: unknown"
-    rollusage
+RACEDB=racedb_8080
 
-fi
 
-DOCKERCMD="docker-compose ${CMDLIST}"
+DOCKERCMD="docker-compose ${YMLLIST}"
 
 checkconfig() {
     stderr
-    stderr PRIMARY: ${PRIMARY[@]}
-    stderr SECONDARY: ${SECONDARY[@]}
-    stderr CMDLIST: $CMDLIST
+    stderr ROLE: $ROLE
+    stderr YMLLIST: $YMLLIST
     stderr DOCKERCMD: $DOCKERCMD
-    
-    stderr 
-    stderr RaceDB Container Configuration
-    for i in "${PRIMARY[@]}"; do
-        stderr $i
-    done
-    stderr
-    stderr Default RaceDB Service: $RACEDB
-    stderr
 
 }
 
+
+dumpall()
+{
+    DATE=$(date +%Y%m%d-%H%M%S)
+    FILENAME="${VARLIB}/${ROLE}-${DATE}.sql.gz"
+    stderr 
+    stderr "dumpall: creating compressed sql backup: ${FILENAME}"
+    ( docker exec --user postgres -i postgresql_racedb pg_dumpall --clean ) | gzip -9 > "${FILENAME}"
+}
+
+
+stop() {
+    echo "Stopping RaceDB Container set..."
+    set -x
+    $DOCKERCMD stop
+}
+
+start() {
+    echo "Starting RaceDB Container set..."
+    set -x
+    $DOCKERCMD up -d
+}
 
 restart() {
     stop
     sleep 2
-    run
+    start
+    $DOCKERCMD restart
 }
+
+failover() {
+    if [ ${POSTGRESQL_RACEDB_RUNNING} -eq 1 ] ; then
+        stderr "RaceDB Containers running, doing dumpall prior to failover"
+        dumpall
+    else
+        stderr "RaceDB Containers not running, cannot dumpall first"
+    fi
+    stderr "Configuring Failover" 
+    set -x
+    setrole failover
+}
+
+fallback() {
+    setrole hot_standby
+    rm -fv "${VARLIBTRIGGERPATH}"
+}
+
+erase_db() {
+    stderr "Erasing DB ..."
+    set -x
+    rm -rf "${VARDATA}"
+    set +x
+}
+
+primary_restore_sql() {
+#    setrole restore_sql    
+#    setargs "SQLGZ=$(basename $1)"
+    if [ ! -f "$1" ] ; then
+        stderr "Cannot see $1"
+        exit 1
+    fi
+    set -x
+    gunzip < "$1" | docker exec -i --user postgres postgresql_racedb psql -v ON_ERROR_STOP=1 --username postgres --no-password 
+    set +x
+}
+
+#primary_restore_local() {
+#    setrole restore_local    
+#    setargs "BACKUP=$(basename $1)"
+#}
+
+#primary_restore_host() {
+#    setrole restore_local    
+#    setargs "restore_host $1"
+#}
+
 
 pull() {
     echo "Starting RaceDB Container set..."
     set -x
     $DOCKERCMD pull
-}
-
-run() {
-    echo "Starting RaceDB Container set..."
-    set -x
-    $DOCKERCMD up -d
 }
 
 logs() {
@@ -140,11 +287,6 @@ manage() {
     $DOCKERCMD exec $RACEDB /RaceDB/manage.py $@
 }
 
-stop() {
-    echo "Stopping RaceDB Container set..."
-    $DOCKERCMD stop
-}
-
 images() {
     $DOCKERCMD images 
 }
@@ -154,7 +296,9 @@ services() {
 }
 
 ps() {
-    $DOCKERCMD ps
+    set -x
+    [ -n "$1" ] && export FILTER="--filter name=$1"
+    $DOCKERCMD ps $FILTER
 }
 
 update() {
@@ -227,6 +371,7 @@ cleanall() {
         echo "Clean cancelled"
     fi
 }
+
 
 restoredata()
 {
@@ -346,13 +491,71 @@ reader() {
 
 usage() {
     DATE=$(date +%Y%m%d-%H%M%S)
-    stderr "${ARG0} Commands:"
-    stderr "    help              - display usage"
-    stderr
-    stderr "  Configure Primary or Secondary"
-    stderr "    Primary Server"
-    stderr "    Secondary Standby"
-    stderr
+
+
+    if [ ${POSTGRESQL_RACEDB_RUNNING} -eq 1 ] ; then
+        stderr 
+        stderr "RaceDB Containers: ${ROLE^^} - RUNNING"
+        stderr "${ARG0} Commands:"
+        stderr "    help                - display usage"
+        case "${ROLE}" in
+        primary)
+            stderr "    restart             - stop and restart RaceDB as PRIMARY Servers"
+            stderr "    stop                - stop RaceDB as PRIMARY Servers"
+            stderr "    dumpall             - do a pg_dumpall backup"
+            ;;
+        hot_standby)
+            stderr "    failover            - enable HOT-STANDBY FAILOVER (with immediate effect, no restart"
+            stderr "    promote             - promote HOT-STANDBY to PRIMARY (will restart)"
+            stderr "    restart             - stop and restart RaceDB as HOT-STANDBY FAILOVER Server"
+            stderr "    stop                - stop RaceDB"
+            stderr "    dumpall             - do a pg_dumpall backup"
+            ;;
+        failover)
+            stderr "    fallback            - change FAILOVER back to HOT-STANDBY (will restart)"
+            stderr "    promote             - promote HOT-STANDBY to PRIMARY"
+            stderr "    restart             - stop and restart RaceDB as FAILOVER Servers"
+            stderr "    stop                - stop RaceDB "
+            ;;
+        *) ;;
+        esac
+    else
+        stderr 
+        stderr "RaceDB Containers NOT RUNNING - last role was ${ROLE^^}"
+        stderr "${ARG0} Commands:"
+        stderr "    help              - display usage"
+        stderr
+        case "${ROLE}" in
+        primary | restore_* )
+            stderr "  Primary"
+            stderr "    restore_sql - restore from local sql backup and start"
+            stderr "    restore_local - restore from local filesystem backup and start"
+            stderr "    restore_host - restore from another host and start"
+            stderr "    standby - start as HOT-STANDBY"
+            ;;
+        hot_standby | standby)
+            stderr "  Standby"
+            stderr "    start - start as HOT-STANDBY"
+            stderr "    failover - start HOT-STANDBY server in FAILOVER mode"
+            stderr "    primary - start as primary using current database"
+            ;;
+        failover)
+            stderr "  Standby-Failover"
+            stderr "    start"
+            stderr "    standby - start as hot_standby"
+            stderr "    primary - start as primary using current database"
+            ;;
+        *)
+            stderr "  Role not set"
+            stderr "    standby"
+            stderr "    primary"
+
+        esac
+    fi
+
+    
+    return
+    
     stderr "  Manage containers"
     stderr "    pull              - pull newer images from docker hub"
     stderr "    run               - start the racedb containers"
@@ -391,55 +594,114 @@ usage() {
 CMD=$1
 shift
 
+
+
 case $CMD in
-    "help") usage
-        ;;
-    "config") checkconfig
-        ;;
-    "pull") pull
-        ;;
-    "run" | "start") run
-        ;;
-    "restart") restart
-        ;;
-    "bash") bash
-        ;;
-    "update") update
-        ;;
-    "logs" | "log") logs
-        ;;
-    "flogs" | "flog") flogs
-        ;;
-    "stop") stop
-        ;;
-    "images") images
-        ;;
-    "services") services
-        ;;
-    "ps") ps
-        ;;
-    "manage") manage $@
-        ;;
-    "backup") backupdata $@
-        ;;
-    "restore") restoredata $@
-        ;;
-    "import") importdata $@
-        ;;
-    "export") exportdata $@
-        ;;
-    "clean") cleanall
-        ;;
+    "help") usage; exit 0 ;;
+    "config") checkconfig; exit 0 ;;
+    "config") checkconfig; exit 0 ;;
+    "logs" | "log") logs ;;
+    *) ;;
+esac
+
+if [ ${POSTGRESQL_RACEDB_RUNNING} -eq 1 ] ; then
+
+    stderr "RaceDB Containers running - ${ROLE}"
+    case $CMD in
+        stop) stop; exit 0 ;;
+        restart) restart; exit 0 ;;
+        *) ;;
+    esac
+
+    case "${ROLE}-${CMD}" in
+        *-restore_sql ) primary_restore_sql "${*}"; start;;
+        hot_standby-failover) failover ; exit 0;;
+        failover-fallback) stop; fallback; start ; exit 0;;
+        failover-dumpall | primary-dumpall) dumpall; exit 0;;
+        failover-promote) stop; setrole primary; start; exit 0;;
+        *) ;;
+    esac
+
+    case $CMD in
+        hot_standby | standby | primary ) stderr "Containers running cannot change role, stop first";;
+        *);;
+    esac
+
+else
+    stderr "RaceDB Containers NOT RUNNING - ${ROLE}"
+    case $CMD in
+        start | run) start; exit 0 ;;
+        restart) restart; exit 0 ;;
+        primary) setrole primary; start; exit 0 ;;
+        hot_standby | standby) setrole hot_standby; start; exit 0 ;;
+        restore) setrole restore; erase_db; start; exit 0 ;;
+        *) ;;
+    esac
+    stderr "ROLE: $ROLE CMD: $CMD"
+    set -x
+    case "${ROLE}-${CMD}" in
+        #*-restore_sql ) primary_restore_sql "${*}"; start;;
+        #primary-restore_local | hot_standby-restore_local) primary_restore_local "${*}"; start;;
+        #primary-restore_host | hot_standby-restore_host) primary_restore_host "${*}"; start;;
+        hot_standby-failover | standby-failover) failover; exit 0;;
+        failover-fallback) fallback; exit 0;;
+        failover-primary | failover-promote) setrole primary; exit 0;;
+    esac
+fi
+exit
+
+ROLECMD="$ROLE-$CMD"
+
+stderr ROLE-CMD: $ROLECMD
+
+set -x
+case "$ROLECMD" in
+    primary-restore_local) ;;
+    primary-restore_remote) ;;
+    primary-standby) ;;
+    hot_standby-failover | standby-failover) ;;
+    hot_standby-promote | standby-promote) ;;
+    failover-demote) ;;
+    failover-primary) ;;
+    "standby-failover-fallback") fallback ;;
+    *) echo "Unknown: \"$ROLECMD\"" 
+esac
+exit
+
+
+#case "$CMD" in
+#    "failover") failover ;;
+#    "fallback") fallback ;;
+#    #"master") master
+#    #    ;;
+#    #"standby") standby
+#    #    ;;
+#    "pull") pull ;;
+#    "run" | "start") run ;;
+#    "restart") restart ;;
+#    "bash") bash ;;
+#    "update") update ;;
+#    "logs" | "log") logs ;;
+#    "flogs" | "flog") flogs ;;
+#    "stop") stop ;;
+#    "images") images ;;
+#    "services") services ;;
+#    "ps") ps $1 ;;
+#    "manage") manage $@ ;;
+#    "backup") backupdata $@ ;;
+#    "restore") restoredata $@ ;;
+#    "import") importdata $@ ;;
+#    "export") exportdata $@ ;;
+#    "clean") cleanall ;;
 #    "build") build
 #        ;;
 #    "rebuild") build
 #        ;;
-    "reader") reader $@
-        ;;
-    *) echo "Unknown command."
-       usage
-       ;;
-esac
+#    "reader") reader $@ ;;
+#    *) echo "Unknown command."
+#       usage
+#       ;;
+#esac
 
 
         
