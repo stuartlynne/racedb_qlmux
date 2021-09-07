@@ -1,4 +1,4 @@
 
-./postgresql-vardata
-./postgresql-varlib
-./postgresql-varrun
+./postgresql-vardata/*
+./postgresql-varlib/*
+./postgresql-varrun/*
