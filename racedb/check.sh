@@ -1,22 +1,42 @@
 #!/bin/bash
-set -x
+function stderr() {
+    echo 1>&2 "${*}"
+}
 
 #F=$(echo 'SELECT TRIM(LEADING FROM pg_is_in_recovery());' | psql -U postgres --tuples-only )
 
-F=$(echo 'SELECT pg_is_in_recovery();' | psql -U postgres --tuples-only ) || exit 1
 
+STANDBYSIGNAL="${PGDATA}/standby.signal"
+RECOVERYSIGNAL="${PGDATA}/recovery.signal"
+RECOVER_CONF="${PGDATA}/recover.conf"
+
+
+if [ -f "${STANDBYSIGNAL}" ] ; then
+    stderr "Postgressql - STANDBY operation"
+    exit 1
+fi
+
+if [ -f "${RECOVERYSIGNAL}" ] ; then
+    stderr "Postgressql - RECOVERY operation"
+    exit 1
+fi
+
+
+F=$(echo 'SELECT pg_is_in_recovery();' | psql -U postgres --tuples-only ) || exit 1
 
 case $F in
 	*f*) 
-        echo running; 
+        stderr "Postgressql - PRIMARY operation"
         exit 0;
         ;;
 	*t*) 
-        echo standby; 
+        stderr "Postgressql - STANDBY or RECOVERY operation"
+        stderr standby; 
         exit 1;
             ;;
 	*) 
-        echo F: \"$F\" 
+        stderr "Postgressql - UNKNOWN"
+        stderr F: \"$F\" 
         exit 1;
         ;;
 esac

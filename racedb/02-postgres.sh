@@ -4,53 +4,25 @@ function stderr() {
     echo 1>&2 "${*}"
 }
 
+# N.B. DATABASE_TYPE is inherited from esitarksi/racedb and normally will default to psql-local
+# We do not support any other configuration.
 
 stderr 
 stderr "-----------------------------------------------"
 stderr "02-postgress.sh"
+stderr "DATABASE_TYPE: $DATABASE_TYPE"
 stderr "-----------------------------------------------"
 date
 env
 
-ROLEPATH="/var/lib/postgresql/.ROLE"
-
-checkstandby() {
-
-    if [ ! -f "${ROLEPATH}" ] ; then
-        stderr "Cannot find ${ROLEPATH}"
-        return 1
-    fi
-
-    . "${ROLEPATH}"
-
-    case "${ROLE}" in
-        hot_standby | restore) 
-            stderr "Wating for ${ROLE^^} to change."
-            return 1 ;;
-        *) ;;
-    esac
-    
-    F=$(stderr 'SELECT pg_is_in_recovery();' | psql -U postgres --tuples-only )
-    case $F in
-        *f*) return 1;;
-        *t*) return 0;;
-        *) stderr F: \"$F\"
-            return 1;;
-    esac
-}
-
 
 waitfordb() {
     stderr "Waiting for Postgres to start up..."
-    until checkstandby; do
-        stderr "Waiting for Postgress Role to change - sleeping"
-        sleep 10
-    done
     until ./check.sh; do
-        stderr "Postgres is unavailable - sleeping"
+        stderr "$(date): Postgres is unavailable - sleeping"
         sleep 10
     done
-    stderr Postgres appears up.
+    stderr "$(date): Postgres appears up."
     set +x
 }
 createuser() {
@@ -65,51 +37,39 @@ checkuser() {
     stderr "Checking if the $DATABASE_NAME exists..."
     racedb=$(psql -U "$POSTGRES_USER" -tAc "SELECT 1 FROM pg_database WHERE datname='$DATABASE_NAME'")
     if [ "$racedb" != "1" ]; then
+        stderr "RaceDB DB DOES NOT exist. Creating."
         createuser
         # POSTGRES_USER is the same as the postgres database name
     else
-        stderr "RaceDB DB already exists. Not creating."
+        stderr "RaceDB DB DOES exist. Not creating."
     fi
 }
 
-if [ "$DATABASE_TYPE" == "psql-local" ]; then
-    stderr "--------------------"
-
-    stderr "Start simply http server"
-    (cd /var/local/www; python3 /simple.py) &
-    
-    stderr "Start witing for db"
-    waitfordb
-
-    stderr "Killing simple http server"
-    CHILDREN=$(pgrep -f simple.py)
-    stderr CHILDREN: $CHILDREN
-    for p in ${CHILDREN} ; do
-        kill -1 $p
-        done
-    stderr PS
-    ps auwx
-    stderr JOBS
-    jobs -p
-    stderr
-    checkuser
-
-
-elif [ "$DATABASE_TYPE" == "psql" ]; then
-    PG_PASSWORD="$DATABASE_PASSWORD"
-
-    (cd /var/local/www; python3 /simple.py) &
-    ID=$!!
-    waitfordb
-    set -x
-    [[ -z "$(jobs -p)" ]] || kill -1 $(jobs -p)
-    kill -1 %1
-    set +x
-    checkuser
-
-else
+if [ ! "$DATABASE_TYPE" == "psql-local" ]; then
     stderr "Ignoring Postgres startup on non-postgres database"
+    exit 0
 fi
+
+stderr "--------------------"
+
+stderr "Start simply http server"
+(cd /var/local/www; python3 /simple.py) &
+
+stderr "Start witing for db"
+waitfordb
+
+stderr "Killing simple http server"
+CHILDREN=$(pgrep -f simple.py)
+stderr CHILDREN: $CHILDREN
+for p in ${CHILDREN} ; do
+    kill -1 $p
+    done
+stderr PS
+ps auwx
+stderr JOBS
+jobs -p
+stderr
+checkuser
 
 stderr "***************************************************************"
 set -x

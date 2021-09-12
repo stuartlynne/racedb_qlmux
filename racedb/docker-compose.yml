@@ -4,7 +4,7 @@ services:
     racedb:
         image: esitarski/racedb:latest
         restart: always
-        container_name: racedb_8080
+        container_name: racedb_8080_${ROLE}
         ports:
             - "8080:8000"
         environment:
@@ -16,17 +16,19 @@ services:
             - VERBOSITY=1
         #env_file:
         #    - ../racedb.env
-        hostname: racedb_8080.local
+        hostname: racedb_8080_${ROLE}.local
         networks:
             racedb:
         depends_on:
             - db
         volumes:
-            - ../postgresql-varrun:/var/run/postgresql
-            - ../postgresql-varlib:/var/lib/postgresql
-            - ../.nobackup:/racedb-data/.nobackup
+            - ../db/${ROLE}/run:/var/run/postgresql
+            - ../db/${ROLE}/lib:/var/lib/postgresql
+            - ../db/${ROLE}/data:/var/lib/postgresql/data
+            - ../racedb/.nobackup:/racedb-data/.nobackup
             #- ../test.json:/racedb-data/test.json
             - ../racedb/02-postgres.sh:/docker-entrypoint-init.d/02-postgres.sh
+            - ../racedb/94-setsuper.sh:/docker-entrypoint-init.d/94-setsuper.sh
             - ../racedb/check.sh:/check.sh
             - ../racedb/simple.py:/simple.py
             - ../racedb/index.html:/var/local/www/index.html
