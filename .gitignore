@@ -1,4 +1,3 @@
 
-./postgresql-vardata/*
-./postgresql-varlib/*
-./postgresql-varrun/*
+db
+OLD
