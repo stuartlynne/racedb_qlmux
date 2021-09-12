@@ -3,26 +3,29 @@ services:
     db:
         image: postgres:13-alpine
         restart: always
-        container_name: postgresql_racedb
+        container_name: postgresql_racedb_${ROLE}
         environment:
             POSTGRES_PASSWORD: 5wHYUQ9qmttpq58EV4EG
             PGDATABASE: racedb
+            PGLIB: /var/lib/postgresql
         env_file:
             ../postgresql/postgresql.env
         networks:
             racedb:
-        hostname: postgresql_racedb.local
+        hostname: postgresql_racedb_${ROLE}.local
         ports:
             - "5432:5432"
         volumes:
-            - ../postgresql-varrun:/var/run/postgresql
-            - ../postgresql-vardata:/var/lib/postgresql/data
-            - ../postgresql-varlib:/var/lib/postgresql
-            - ../postgresql-initdb.d:/docker-entrypoint-initdb.d
-            - ../postgresql/entrypoint.sh:/entrypoint.sh
+            - ../db/${ROLE}/run:/var/run/postgresql
+            - ../db/${ROLE}/lib:/var/lib/postgresql
+            - ../db/${ROLE}/data:/var/lib/postgresql/data
+            - ../postgresql/${ROLE}-entrypoint.sh:/${ROLE}-entrypoint.sh
+
+            #- ../${ROLE}-initdb.d:/docker-entrypoint-initdb.d
+            #- ../postgresql/backup.sh:/backup.sh
             #- ../postgresql/restore.sh:/docker-entrypoint-initdb.d/restore.sh
 
-        command: /entrypoint.sh
+        command: /${ROLE}-entrypoint.sh
 
 networks:
     racedb:
