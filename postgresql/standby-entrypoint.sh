@@ -91,8 +91,8 @@ if [ -d "${PGDATA}" ] ; then
     set +x
 fi
 
-createstandbyconf > "${STANDBY_CONF}"
-testandadd /var/lib/postgresql/data/postgresql.conf "include_if_exists = '${STANDBY_CONF}'"
+#createstandbyconf > "${STANDBY_CONF}"
+#testandadd /var/lib/postgresql/data/postgresql.conf "include_if_exists = '${STANDBY_CONF}'"
 
 if [ ! -f "${TRIGGER_FILE}" ] ; then
     stderr 
@@ -133,6 +133,8 @@ if [ ! -f "${TRIGGER_FILE}" ] ; then
     #stderr "Setup up standby.conf, add to postgress.conf and create standby.signal"
     #touch "${PGDATA}/standby.signal"
     #[ -f "${TRIGGER_FILE}" ] && rm -vf "${TRIGGER_FILE}"
+    createstandbyconf > "${STANDBY_CONF}"
+    testandadd /var/lib/postgresql/data/postgresql.conf "include_if_exists = '${STANDBY_CONF}'"
 
 else
     stderr 
