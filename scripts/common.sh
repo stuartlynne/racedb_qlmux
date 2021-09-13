@@ -9,9 +9,9 @@ function stderr() {
 }
 
 YMLS=(  
-    ./postgresql/docker-compose-${ROLE}.yml 
-    ./racedb/docker-compose-${ROLE}.yml 
-    ./racedb/docker-compose-network-${ROLE}.yml 
+    ./postgresql/docker-compose.yml 
+    ./racedb/docker-compose.yml 
+    ./racedb/docker-compose-network.yml 
 #    ./qllabels-qlmuxd/docker-compose.yml
 #    ./racedb/docker-compose-8080.yml 
 #    ./racedb/docker-compose-8081.yml 
@@ -24,7 +24,10 @@ VARLIB="./db/${ROLE}/lib"
 VARRUN="./db/${ROLE}/run"
 TRIGGERPATH="./db/standby/lib/trigger_file_standby_to_failover"
 
-export PRIMARY_HOST=""
+#export PRIMARY_HOST=""
+#export STANDBY_HOST=""
+
+. ./docker.env
 
 RUNNING() {
 	if [ $1 -eq 1 ] ; then echo "RUNNING"; else echo "NOT RUNNING"; fi
@@ -48,7 +51,6 @@ cmdlist() {
 }
 
 YMLLIST=$(cmdlist)
-
 
 DOCKERCMD="docker-compose ${YMLLIST}"
 

@@ -47,7 +47,7 @@ if [ -f "${PGLIB}/${RECOVERDBTGZ}" ] ; then
 # backup PGDATA directory to $(basename $PGDATA)/...
 #
 elif [ -d "${PGDATA}" ] ; then
-    stderr "Backing up database ..."
+    stderr "Backing up current PRIMARY database ..."
     KB=$(du -sk "${PGDATA}" | cut -f1)
     stderr KB: $KB
     DATE=$(date +%Y%m%d-%H%M)
