@@ -118,7 +118,7 @@ if [ ! -f "${TRIGGER_FILE}" ] ; then
 
     # use pg_basebackup to pull the database over from the primary host
     #
-    stderr "Backing up from ${PRIMARY_HOST} ..."
+    stderr "Replicating from ${PRIMARY_HOST} ..."
     set -x
     until time pg_basebackup -R -h ${PRIMARY_HOST} -D "${PGDATA}" -U postgres -vP ; do
         set +x
@@ -135,6 +135,9 @@ if [ ! -f "${TRIGGER_FILE}" ] ; then
     #[ -f "${TRIGGER_FILE}" ] && rm -vf "${TRIGGER_FILE}"
     createstandbyconf > "${STANDBY_CONF}"
     testandadd /var/lib/postgresql/data/postgresql.conf "include_if_exists = '${STANDBY_CONF}'"
+    echo "host replication "postgres" 0.0.0.0/0 trust" >> "/var/lib/postgresql/data/pg_hba.conf"
+    echo "SELECT pg_create_physical_replication_slot('standby1_slot');" | psql -U postgres
+    touch "${LOCALCONFCOMPLETE}" 
 
 else
     stderr 
