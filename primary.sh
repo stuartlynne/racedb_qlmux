@@ -25,6 +25,22 @@ basebackup() {
 
 }
 
+restore_tgz() {
+    stderr
+    stderr "Will restore $1 before starting"
+    pushd db/primary/lib
+    ln -svf $(basename $1) recover-db.tgz
+    popd
+}
+
+restore_standby() {
+    stderr
+    stderr "Will restore $1 before starting"
+    set -x 
+    touch db/primary/lib/restore-standby
+    set +x
+}
+
 
 # ###############################################################################################################################
 
@@ -46,6 +62,7 @@ usage_notrunning() {
     stderr "    start           - start ${role} RaceDB container set"
     stderr
     stderr "    restore_basebackup - restore from local basebackup and start"
+    stderr "    restore_standby - restore from local standby in failover mode and start"
     stderr "    restore_tgz - restore from local filesystem backup and start"
     stderr "    host - restore from another host and start"
     stderr 
@@ -55,7 +72,8 @@ usage_notrunning() {
 
 if [ ! ${POSTGRESQL_RACEDB_PRIMARY_RUNNING} -eq 1 ] ; then
     case "${CMD}" in
-        restore_tgz) restore_tgz ${*} ;;
+        restore_tgz | tgz ) restore_tgz ${*} ;;
+        restore_standby | standby | failover | fail) restore_standby ;;
         start ) start;;
         erase_db) erase_db;;
         help | *) usage_notrunning;;
