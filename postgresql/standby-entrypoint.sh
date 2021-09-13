@@ -1,72 +1,49 @@
 #!/bin/bash
 #
-# standby.sh is used to start the postgres container that is acting as the hot_standby Postgresql server.
-#
-# The container stack operates in one of TWO ROLES:
-#
-#   primary     The postgress server is the primary RaceDB server.     
-#   standby     The postgress server is a hot_standby to the primary RaceDB server.
+# This is the entrypoint file used for the Docker Postgresql Standby Container.
 #
 # A standby server can be in two modes:
 #
 #   hot_standby replicating data from the primary server
 #   failover    The postgress server is acting as a failover postgress server for RaceDB
 #
-# The current contain stack role is contained in:
-#
-#   /var/run/postgresql/.ROLE
-#
-# The RaceDB Container stack contains multiple containers, typically:
-#
-#   postgresql
-#   racedb_8080
-#   qllabels_qlmuxd
-#
-# These are deployed on two separate laptops and with two exceptions are identically
-# configured:
-#
-#   hostname        - the name of the laptop
-#   primary_host    - the name of the primary laptop
-#   role            - the role each laptop will have
-#
-# When started the primary host will proceed to active deployment of RaceDB. The
-# standby host will backup existing data, connect to the primary to get a current
-# copy of the database and then set up as a hot_standby. RaceDB will not start on
-# the standby host.
-#
-# If the primary host fails, it must be disconnected from the network. The standby
-# host is changed to FAILOVER (e.g. manage.sh failover).
-#
-# This:
-#
-#   - creates the trigger file
-#   - the hot_standby postgressql server changes to fully operational
-#   - RaceDB is started
-#  
-# N.B. In hot standby mode postgresql is running in read only mode.
-# Testing for standby mode can use this query:
-#
-#       SELECT pg_is_in_recovery();
-#
-# This will return a single row with a value of "t" or "f".
-#
-# RaceDB containers will need to verify that the server is not running
-# in hot standby before attempting to run the RaceDB application.
-#
 
 function stderr() {
     echo 1>&2 "${*}"
 }
 
-stderr "-----------------------------------------------"
 stderr 
-stderr RaceDB Postgresql Server
+stderr "**********************************************"
+stderr "Starting Postgress as STANDBY Server"
+stderr "**********************************************"
+stderr "PRIMARY_HOST: $PRIMARY_HOST"
+stderr "DEFAULT_PRIMARY_HOST: $DEFAULT_PRIMARY_HOST"
 stderr $0: $(date)
 stderr
-env
-stderr "-----------------------------------------------"
 
-#export PRIMARY_HOST=192.168.40.16
+if [ -z "${PRIMARY_HOST}" ]; then
+    stderr "PRIMARY_HOST is not set, using DEFAULT_PRIMARY_HOST: $DEFAULT_PRIMARY_HOST"
+    export PRIMARY_HOST="${DEFAULT_PRIMARY_HOST}"
+fi
+
+#env 1>&2
+
+# testand file "config=value"
+# If ^$2 is not found in $1, then append $2 >> $1
+#
+testandadd() {
+    #set -x
+    file=$1 
+    add=$2
+    egrep -q "^${add}" "${file}" || echo "${add}" >> "${file}"
+}
+
+STANDBYSIGNAL="${PGDATA}/standby.signal"
+RECOVERYSIGNAL="${PGDATA}/recovery.signal"
+RECOVER_CONF="${PGDATA}/recover.conf"
+RECOVERDBTGZ="recover-db.tgz"
+
+
 export TRIGGER_FILE="$(dirname ${PGDATA})/trigger_file_standby_to_failover"
 export STANDBY_CONF="${PGDATA}/standby.conf"
 

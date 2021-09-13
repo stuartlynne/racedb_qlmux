@@ -15,6 +15,15 @@ failover() {
 }
 
 # ###############################################################################################################################
+if [ ${POSTGRESQL_RACEDB_PRIMARY_RUNNING} -eq 1 ] ; then
+    stderr
+    stderr "PRIMARY Containers are running, cannot run STANDBY at the same time"
+    stderr "Use ./primary.sh stop first if you wish to use the STANDBY container set"
+    stderr
+    exit 1
+fi
+
+# ###############################################################################################################################
 # Not Running
 usage_notrunning() {
     stderr 
@@ -28,7 +37,7 @@ usage_notrunning() {
 }
 
 if [ ! ${POSTGRESQL_RACEDB_STANDBY_RUNNING} -eq 1 ] ; then
-    case "${ROLE}-${CMD}" in
+    case "${CMD}" in
         start ) start;;
         help | *) usage_notrunning;;
     esac

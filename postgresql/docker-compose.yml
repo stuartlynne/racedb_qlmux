@@ -8,6 +8,7 @@ services:
             POSTGRES_PASSWORD: 5wHYUQ9qmttpq58EV4EG
             PGDATABASE: racedb
             PGLIB: /var/lib/postgresql
+            PRIMARY_HOST: ${PRIMARY_HOST}
         env_file:
             ../postgresql/postgresql.env
         networks:

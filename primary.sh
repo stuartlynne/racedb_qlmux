@@ -28,6 +28,13 @@ basebackup() {
 
 # ###############################################################################################################################
 
+if [ ${POSTGRESQL_RACEDB_STANDBY_RUNNING} -eq 1 ] ; then
+    stderr
+    stderr "STANDBY Containers are running, cannot run PRIMARY at the same time"
+    stderr "Use ./standby.sh stop first if you wish to use the PRIMARY container set"
+    stderr
+    exit 1
+fi
 
 # ###############################################################################################################################
 # Not Running
