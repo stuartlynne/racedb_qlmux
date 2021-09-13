@@ -2,27 +2,86 @@
 ## Sun Sep 12 16:29:56 PDT 2021 
 ## stuart.lynne@gmail.com
 
-The *racedb\_qlmuxd* git archive implements management scripts to support running RaceDB.
+The *racedb\_qlmuxd* git archive implements management scripts to support running RaceDB, Postgresql
+and qlmuxd in containers.
 
 The primary features:
-1. Implementation of *PRIMARY* and *STANDBY* container sets to support hot-standby backup on a second host system
+1. Implementation of *PRIMARY* and *STANDBY* container sets to support hot-standby backup on a second hardware system
 2. Support for *qllabels* which converts RaceDB label PDF files to Brother Raster files for printing on *QL* label printers
 3. Support for *qlmuxd* which supports multiplexing label printing to target sets of *QL* label printers with failover support.
+
+
+## Installation
+
+Clone the archive on two Linux based laptops:
+
+```
+    git clone https://github.com/stuartlynne/racedb_qlmuxd.git
+
+```
+
+Edit the *docker.env* file to set the required configuration:
+```
+#
+CONTAINER_YML_LIST=(
+    ./postgresql/docker-compose.yml
+    ./racedb/docker-compose.yml
+    ./qllabels-qlmuxd/docker-compose.yml
+    )
+
+export PRIMARY_HOST=""
+export STANDBY_HOST=""
+
+export DEFAULT_PRIMARY_HOST=192.168.40.17
+export DEFAULT_STANDBY_HOST=192.168.40.16
+
+# Impinj R1000 with Lilly 5dBi PCB UHF RFID Patch antenna wands
+RFID_READER_HOST_8080=192.168.40.101
+RFID_TRANSMIT_POWER_8080=40
+RFID_RECEIVER_SENSITIVITY_8080=5
+
+```
+This needs to be copied into the top level of the git archive on both systems.
+
+On the *PRIMARY* system:
+```
+./primary.sh start
+```
+
+On the *STANDBY* system:
+```
+./standby.sh start
+```
+
+
+### Use
+The docker containers should start automatically when the laptops are turned on.
+
+Registration laptops / chromebooks should connect to port 8080 using the ip address of the PRIMARY host.
+
+### Failure
+
+If the PRIMARY host fails, disconnect it from the network. On the STANDBY host:
+```
+./standby.sh failover
+```
+
+
 
 
 ## Containers
 
 Each of these can be started to act as the *PRIMARY* or *STANDBY* container set. 
 
-1. postgresql_racedb
-2. racedb_8080
+1. postgresql\_racedb
+2. racedb\_8080
 3. qllabels
 4. qlmuxd
 
 N.B. It is not possible to run both the PRIMARY and STANDBY container sets on the same host computer at the same time.
 
 
-## postgresql_racedb
+### postgresql\_racedb
 
 This implements the *postgresql* database server. 
 
@@ -36,7 +95,7 @@ If the PRIMARY container stack fails the STANDBY postgresql server is trigged in
 queries from the SECONDARY RaceDB server (which will also start when the trigger to FALLOVER is done.)
 
 
-## racedb_8080
+### racedb\_8080
 
 This implements *RaceDB*. When started in PRIMARY mode it starts normally.
 
@@ -44,7 +103,7 @@ When started in STANDBY mode RaceDB will wait for the FAILOVER signal and for *p
 and then will start normal operation.
 
 
-## qllabels
+### qllabels
 The *qllabels* container set maintains an open *ssh* port (on the internal racedb private network within docker.)
 
 Set in RaceDB/systeminfo:
@@ -53,8 +112,7 @@ Set in RaceDB/systeminfo:
 ssh racedb@qllabels.local QLLABELS.py $1
 ```
 
-
-## qlmuxd
+### qlmuxd
 The *qlmuxd* container set maintains a set of open *TCP* ports (9100..9104) in the racedb private network 
 (internal to docker) that will accept data to be sent
 to one of the pre-defined printer queues. The data must be *Brother* raster format. Typical implementation:
@@ -65,12 +123,7 @@ to one of the pre-defined printer queues. The data must be *Brother* raster form
 *qlmuxd* will send the labels to the specific printer queue associated with the registration desk position (antenna port number.)
 If the required printer is not available (busy, out of labels, lid open) it will use the designated backup printer.
 
-
-
-
-
-
-*qlmuxd_docker* contains scripts to use *RaceDB* with *qlmuxd* in containers.
+*qlmuxd\_docker* contains scripts to use *RaceDB* with *qlmuxd* in containers.
 
 Specifically it contains the *racedb.sh* script and updated *docker-compose.yml*
 files from the *RaceDB* git archive that allow *RaceDB* to be used, updated,
@@ -82,6 +135,14 @@ table or remote check-in kiosks.
 
 *qlmuxd* is a Brother QL printer spooler that *RaceDB* can use to print frame
 and bib numbers on small and large labels.
+
+
+
+
+
+## #########################33
+
+
 
 ## racedb.sh configurtion
 
@@ -99,12 +160,8 @@ This specifies which *docker-compose.yml* files your use of *RaceDB* requires.
 
 ## docker-racedb/docker-compose-808N.yml
 
-These implement one or more *RaceDB* services.
+These implement one or more *RaceDB* services. Each can be configured to use a different *RFID_READER_HOST*.
 
-These are copies of the original docker-compse.yml files from *RaceDB* with
-the *postgres* portion removed, and each specifying a different host port
-to use, and a different *racedb-808N.env* file. The *.env* file contains
-the RFID reader configuration.
 
 ## postgres/docker-compose-primary.yml
 
@@ -138,4 +195,9 @@ send to directly to the Brother Printers.
 used by a single registration clerk. Multiple people printing to a
 printer will result in overlapping printouts.*
 
+
+## 
+
+
+##### vim: textwidth=0
 

@@ -51,7 +51,7 @@ If this file *DOES NOT EXIST* then *postgresql* will work as the primary server.
 If this file *DOES EXIST* then *postgresql* will start in recovery mode:
 
 - *postgresql* will use postgresql.conf[restore\_command] to restore database
-- *postgresql* will *remove* the *$PGDATA/recovery.signal file
+- *postgresql* will *remove* the *$PGDATA/recovery.signal* file
 - *postgresql* will work as the primary server.
 
 N.B. if both $PGDATA/recovery.signal and $PGDATA/standby.signal exist, standby takes priority.
@@ -59,4 +59,31 @@ N.B. if both $PGDATA/recovery.signal and $PGDATA/standby.signal exist, standby t
 ## RaceDB
 
 RaceDB will only start if neither of the signal files exists and if *postgresql* is running.
+
+
+## PRIMARY Fails, STANDBY goes to FAILOVER
+
+| PRIMARY                   | STANDBY               | RaceDB Server         |
+| -----------------         | ------------------    | -----------------     |
+| Normal startup            | Wait for PRIMARY      | Using Primary         |
+| Running                   | Replicate PRIMARY     |                       |
+|                           | Receive WAL records   |                       |
+| Failure                   |                       |                       |
+|                           | Trigger file created  |                       |
+|                           | Operate in FAILOVER   | Switch to Secondary   |
+
+
+
+
+## PRIMARY Restored from STANDBY
+
+| PRIMARY                   | STANDBY               |
+| -----------------         | ------------------    |
+|                           | Operating in FAILOVER |
+| restore-standby created   |                       |
+| Startup                   |                       |
+| Replicate from STANDBY    |                       |
+| Normal operation          |                       | 
+
+
 

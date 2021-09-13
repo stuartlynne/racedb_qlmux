@@ -8,14 +8,6 @@ function stderr() {
     echo "${*}" 1>&2
 }
 
-YMLS=(  
-    ./postgresql/docker-compose.yml 
-    ./racedb/docker-compose.yml 
-    ./racedb/docker-compose-network.yml 
-#    ./qllabels-qlmuxd/docker-compose.yml
-#    ./racedb/docker-compose-8080.yml 
-#    ./racedb/docker-compose-8081.yml 
-    )
 
 mkdir -v -p db/{primary,standby}/{data,lib,run}
 
@@ -25,6 +17,7 @@ VARRUN="./db/${ROLE}/run"
 PGDATA="/var/lib/postgresql/data"
 TRIGGERPATH="./db/standby/lib/trigger_file_standby_to_failover"
 RECOVERDBTGZ="db/primary/lib/recover-db.tgz"
+RECOVERSTANDBY="db/primary/lib/restore-standby"
 
 #export PRIMARY_HOST=""
 #export STANDBY_HOST=""
@@ -52,6 +45,11 @@ if [ -f "${RECOVERDBTGZ}" ] ; then
 	ls -l "${RECOVERDBTGZ}"
 	stderr
 fi
+if [ -f "${RECOVERSTANDBY}" ] ; then
+	stderr "Recovery file found, PRIMARY server will restore from STANDBY on next start"
+	ls -l "${RECOVERSTANDBY}"
+	stderr
+fi
 if [ -f "${TRIGGERPATH}" ] ; then
 	stderr "Trigger file found"
 	ls -l "${TRIGGERPATH}"
@@ -61,7 +59,7 @@ fi
 
 cmdlist() {
 
-    for i in "${YMLS[@]}"; do 
+    for i in "${CONTAINER_YML_LIST[@]}"; do 
         if [ ! -e "${i}" ] ; then
             stderr "Cannot find $i"
             exit 1
