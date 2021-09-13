@@ -22,7 +22,9 @@ mkdir -v -p db/{primary,standby}/{data,lib,run}
 VARDATA="./db/${ROLE}/data"
 VARLIB="./db/${ROLE}/lib"
 VARRUN="./db/${ROLE}/run"
+PGDATA="/var/lib/postgresql/data"
 TRIGGERPATH="./db/standby/lib/trigger_file_standby_to_failover"
+RECOVERDBTGZ="db/primary/lib/recover-db.tgz"
 
 #export PRIMARY_HOST=""
 #export STANDBY_HOST=""
@@ -33,11 +35,29 @@ RUNNING() {
 	if [ $1 -eq 1 ] ; then echo "RUNNING"; else echo "NOT RUNNING"; fi
 }
 
+
+stderr "RaceDB Containers"
+
 ./scripts/container_running.sh postgresql_racedb_primary && POSTGRESQL_RACEDB_PRIMARY_RUNNING=1 || POSTGRESQL_RACEDB_PRIMARY_RUNNING=0
 ./scripts/container_running.sh postgresql_racedb_standby && POSTGRESQL_RACEDB_STANDBY_RUNNING=1 || POSTGRESQL_RACEDB_STANDBY_RUNNING=0
+
+stderr
     
 stderr "RaceDB Containers [PRIMARY] $(RUNNING $POSTGRESQL_RACEDB_PRIMARY_RUNNING)"
 stderr "RaceDB Containers [STANDBY] $(RUNNING $POSTGRESQL_RACEDB_STANDBY_RUNNING)"
+
+stderr
+if [ -f "${RECOVERDBTGZ}" ] ; then
+	stderr "Recovery file found, PRIMARY server will restore from this file on next start"
+	ls -l "${RECOVERDBTGZ}"
+	stderr
+fi
+if [ -f "${TRIGGERPATH}" ] ; then
+	stderr "Trigger file found"
+	ls -l "${TRIGGERPATH}"
+	stderr
+fi
+
 
 cmdlist() {
 
@@ -56,7 +76,7 @@ DOCKERCMD="docker-compose ${YMLLIST}"
 
 stop() {
 	stderr "Stopping postgresql server"
-	( set -x; docker exec --user postgres -i postgresql_racedb_${ROLE} pg_ctl stop -D ${PGDATA} -m smart --wait )
+	( set -x; docker exec --user postgres -i postgresql_racedb_${ROLE} pg_ctl stop -D ${PGDATA} -m fast --wait --timeout=10 )
     stderr "Stopping RaceDB Container set..."
     ( set -x; $DOCKERCMD stop)
 }
