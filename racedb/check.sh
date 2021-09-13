@@ -10,7 +10,6 @@ STANDBYSIGNAL="${PGDATA}/standby.signal"
 RECOVERYSIGNAL="${PGDATA}/recovery.signal"
 RECOVER_CONF="${PGDATA}/recover.conf"
 
-
 if [ -f "${STANDBYSIGNAL}" ] ; then
     stderr "Postgressql - STANDBY operation"
     exit 1

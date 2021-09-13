@@ -14,8 +14,12 @@ services:
             - TIME_ZONE=America/Vancouver
             - DATETIME_FORMAT=ISO
             - VERBOSITY=1
-        #env_file:
-        #    - ../racedb.env
+            #
+            # Uncomment to use RFID reader, see ../docker.env
+            #- RFID_READER_HOST=${RFID_READER_HOST_8080}
+            #- RFID_TRANSMIT_POWER=${RFID_TRANSMIT_POWER_8080}
+            #- RFID_RECEIVER_SENSITIVITY=${RFID_RECEIVER_SENSITIVITY_8080}
+            #- LLRP_SERVER_HOST=
         hostname: racedb_8080_${ROLE}.local
         networks:
             racedb:
