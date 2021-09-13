@@ -55,9 +55,10 @@ YMLLIST=$(cmdlist)
 DOCKERCMD="docker-compose ${YMLLIST}"
 
 stop() {
-    echo "Stopping RaceDB Container set..."
-    set -x
-    $DOCKERCMD stop
+	stderr "Stopping postgresql server"
+	( set -x; docker exec --user postgres -i postgresql_racedb_${ROLE} pg_ctl stop -D ${PGDATA} -m smart --wait )
+    stderr "Stopping RaceDB Container set..."
+    ( set -x; $DOCKERCMD stop)
 }
 
 start() {
