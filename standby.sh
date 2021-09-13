@@ -62,7 +62,7 @@ if [ ${POSTGRESQL_RACEDB_STANDBY_RUNNING} -eq 1 ] ; then
     case "${CMD}" in
         restart ) restart ;;
         stop ) stop ;;
-        failover | fail) failover;;
+        failover | fail | fall | fallover ) failover;;
         help | *)  usage_running;;
     esac
     exit 0
