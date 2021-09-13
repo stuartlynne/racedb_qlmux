@@ -42,6 +42,7 @@ STANDBYSIGNAL="${PGDATA}/standby.signal"
 RECOVERYSIGNAL="${PGDATA}/recovery.signal"
 RECOVER_CONF="${PGDATA}/recover.conf"
 RECOVERDBTGZ="recover-db.tgz"
+HOSTNAME=$(hostname -s)
 
 
 export TRIGGER_FILE="$(dirname ${PGDATA})/trigger_file_standby_to_failover"
@@ -84,7 +85,7 @@ if [ -d "${PGDATA}" ] ; then
     KB=$(du -sk "${PGDATA}" | cut -f1)
     stderr KB: $KB
     DATE=$(date +%Y%m%d-%H%M)
-    BACKUP="$(dirname ${PGDATA})/primary-${DATE}-db.tgz"
+    BACKUP="$(dirname ${PGDATA})/${HOSTNAME}-${DATE}-db.tgz"
     stderr "Archiving ${PGDATA} to ${BACKUP}"
     set -x
     tar cfz "${BACKUP}" -C "${PGDATA}" .
