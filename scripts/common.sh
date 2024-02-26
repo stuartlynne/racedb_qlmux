@@ -18,6 +18,8 @@ PGDATA="/var/lib/postgresql/data"
 TRIGGERPATH="./db/standby/lib/trigger_file_standby_to_failover"
 RECOVERDBTGZ="db/primary/lib/recover-db.tgz"
 RECOVERSTANDBY="db/primary/lib/restore-standby"
+HOSTNAME=$(hostname -s)
+DATE=$(date +%Y%m%d-%H%M%S)
 
 #export PRIMARY_HOST=""
 #export STANDBY_HOST=""
@@ -81,16 +83,49 @@ stop() {
 
 start() {
     echo "Starting RaceDB Container set... ${ROLE}"
-    set -x
-    $DOCKERCMD up -d
+    (set -x; $DOCKERCMD up -d)
 }
 
 restart() {
     stop
     sleep 2
     start
-    $DOCKERCMD restart
+	#( set -x; $DOCKERCMD restart)
 }
+
+ps() {
+    [ -n "$1" ] && export FILTER="--filter name=$1"
+	( set -x; $DOCKERCMD ps $FILTER)
+
+}
+
+update() {
+    stop
+    echo "Updating RaceDB and PostgreSQL containers (if available)"
+    (set -x; $DOCKERCMD pull)
+}
+
+logs() {
+    (set -x; $DOCKERCMD logs --no-color ) | egrep "^$1"
+}
+
+flogs() {
+    (set -x; $DOCKERCMD logs --no-color ) | egrep "^$1"
+}
+
+pull() {
+    stderr "Starting RaceDB Container set..."
+    (set -x; $DOCKERCMD pull)
+}
+
+db_tgz() {
+	BACKUP="${VARLIB}/${HOSTNAME}-${DATE}-db.tgz"
+	stderr "Backing up previous ${ROL^^} database to ${BACKUP} ..."
+
+	(set -x; tar cfz "${BACKUP}" -C "${VARDATA}" .)
+
+}
+
 
 CMD=$1
 shift
