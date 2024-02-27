@@ -45,12 +45,12 @@ This needs to be copied into the top level of the git archive on both systems.
 
 On the *PRIMARY* system:
 ```
-./primary.sh start
+sudo ./primary.sh start
 ```
 
 On the *STANDBY* system:
 ```
-./standby.sh start
+sudo ./standby.sh start
 ```
 
 
@@ -63,7 +63,7 @@ Registration laptops / chromebooks should connect to port 8080 using the ip addr
 
 If the PRIMARY host fails, disconnect it from the network. On the STANDBY host:
 ```
-./standby.sh failover
+sudo ./standby.sh failover
 ```
 
 
@@ -71,17 +71,19 @@ If the PRIMARY host fails, disconnect it from the network. On the STANDBY host:
 
 ## Containers
 
-Each of these can be started to act as the *PRIMARY* or *STANDBY* container set. 
+
+### RaceDB:
 
 1. postgresql\_racedb
 2. racedb\_8080
-3. qllabels
-4. qlmuxd
 
+Each of these can be started to act as the *PRIMARY* or *STANDBY* container set. 
 N.B. It is not possible to run both the PRIMARY and STANDBY container sets on the same host computer at the same time.
 
 
-### postgresql\_racedb
+
+
+#### postgresql\_racedb
 
 This implements the *postgresql* database server. 
 
@@ -95,15 +97,20 @@ If the PRIMARY container stack fails the STANDBY postgresql server is trigged in
 queries from the SECONDARY RaceDB server (which will also start when the trigger to FALLOVER is done.)
 
 
-### racedb\_8080
+#### racedb\_8080
 
 This implements *RaceDB*. When started in PRIMARY mode it starts normally.
 
 When started in STANDBY mode RaceDB will wait for the FAILOVER signal and for *postgresql* to become available
 and then will start normal operation.
 
+### QLLabels and optional QLMuxd
 
-### qllabels
+1. qllabels-direct
+2. qllabels-qlmuxd
+
+
+#### qllabels-direct
 The *qllabels* container set maintains an open *ssh* port (on the internal racedb private network within docker.)
 
 Set in RaceDB/systeminfo:
@@ -112,7 +119,29 @@ Set in RaceDB/systeminfo:
 ssh racedb@qllabels.local QLLABELS.py $1
 ```
 
-### qlmuxd
+The script will convert the PDF label and send directly to the required label printer.
+
+This is intended for use when only a single registration station is used. 
+
+*If more than one label is printed from multiple stations they will not be correctly printed.*
+
+To use:
+```
+    cd qllabels-direct
+    # edit qllabels-direct.cfg for printer IP addresses
+    sudo ./run.sh
+```
+
+
+#### qllabels-qlmuxd
+
+If multiple registration stations are in use this uses the *qlmux* spooler to capture the raster data
+from the QLLabels script and direct it to the printers. This allows multiple "print jobs" to overlap
+and be printed correctly.
+
+This willcreate both a *qllabels* and *qlmuxd* container. The *qllabels* container is similar to what is created
+above.
+
 The *qlmuxd* container set maintains a set of open *TCP* ports (9100..9104) in the racedb private network 
 (internal to docker) that will accept data to be sent
 to one of the pre-defined printer queues. The data must be *Brother* raster format. Typical implementation:
@@ -123,7 +152,7 @@ to one of the pre-defined printer queues. The data must be *Brother* raster form
 *qlmuxd* will send the labels to the specific printer queue associated with the registration desk position (antenna port number.)
 If the required printer is not available (busy, out of labels, lid open) it will use the designated backup printer.
 
-*qlmuxd\_docker* contains scripts to use *RaceDB* with *qlmuxd* in containers.
+The *qlmux* git archive *qlmuxd\_docker* contains scripts to use *RaceDB* with *qlmuxd* in containers.
 
 Specifically it contains the *racedb.sh* script and updated *docker-compose.yml*
 files from the *RaceDB* git archive that allow *RaceDB* to be used, updated,
@@ -136,7 +165,15 @@ table or remote check-in kiosks.
 *qlmuxd* is a Brother QL printer spooler that *RaceDB* can use to print frame
 and bib numbers on small and large labels.
 
+To use:
+```
+    cd qllabels-qlmuxd
+    # edit qllabels-qlmuxd.cfg for printer IP addresses
+    sudo ./run.sh
+```
 
+N.b. This *MUST* be done after the RaceDB and PostGres containers have been created and started
+as they create the required network that the *qlmuxd* container will use.
 
 
 
