@@ -29,3 +29,5 @@ services:
             - ../qllabels-direct/qllabels-direct.cfg:/usr/local/etc/qllabels.cfg
         environment:
             PYTHONUNBUFFERED: 1
+networks:
+    racedb:

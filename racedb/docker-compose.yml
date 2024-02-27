@@ -37,3 +37,5 @@ services:
             - ../racedb/simple.py:/simple.py
             - ../racedb/index.html:/var/local/www/index.html
 
+networks:
+    racedb:

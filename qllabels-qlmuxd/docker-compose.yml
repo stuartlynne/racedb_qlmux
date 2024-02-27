@@ -46,3 +46,5 @@ services:
         environment:
             PYTHONUNBUFFERED: 1
 
+networks:
+    racedb:
