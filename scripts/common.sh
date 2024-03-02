@@ -83,7 +83,7 @@ stop() {
 
 start() {
     echo "Starting RaceDB Container set... ${ROLE}"
-    (set -x; $DOCKERCMD up -d)
+    (set -x; $DOCKERCMD pull; $DOCKERCMD up -d)
 }
 
 restart() {

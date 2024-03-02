@@ -41,25 +41,30 @@ restore_standby() {
 }
 
 loaddata() {
-    filename=$1
+    pathname=$1
 
-    if [ "-" = "${filename}" ]; then
+    if [ "-" = "${pathname}" ]; then
         echo "Importing from <stdin>"
         set -x
-        $DOCKERCMD exec -T racedb_8080_primary python3 /RaceDB/manage.py flush --no-input
-        $DOCKERCMD exec -T racedb_8080_primary python3 /RaceDB/manage.py loaddata --format=json -
+        docker exec racedb_8080_primary "echo yes | python3 /RaceDB/manage.py flush --no-input"
+        cat > db/primary/racedb-loaddata/stdin.json
+        docker exec racedb_8080_primary python3 /RaceDB/manage.py loaddata --format=json /racedb-loaddata/stdin.json
+        rm -vf db/primary/racedb-loaddata/stdin.json
 
-    elif [ -n "${filename}" ] ; then
+    elif [ -n "${pathname}" ] ; then
 
-        #if [ !  -f "racedb-data/${filename}" ];then
-        #    echo "racedb-data/${filename} does not exist"
+        #if [ !  -f "racedb-data/${pathname}" ];then
+        #    echo "racedb-data/${pathname} does not exist"
         #    exit 1
         #fi
-        echo "Importing racedb-data/${filename}..."
+        echo "Importing racedb-data/${pathname}..."
 
         set -x
-        $DOCKERCMD exec racedb_8080_primary python3 /RaceDB/manage.py flush
-        cat ${filename} | (set -x; $DOCKERCMD exec -T racedb_8080_primary python3 /RaceDB/manage.py loaddata --format=json -)
+        docker exec racedb_8080_primary "echo yes | python3 /RaceDB/manage.py flush --no-input"
+        filename=$(basename ${pathname})
+        cp -v ${pathname} db/primary/racedb-loaddata/${filename}
+        (set -x; docker exec racedb_8080_primary python3 /RaceDB/manage.py loaddata --format=json /racedb-loaddata/${filename} )
+        #rm -vf db/primary/racedb-loaddata/${filename}
     fi
 
 }
@@ -70,7 +75,7 @@ dumpdata() {
     if [ "-" = "${filename}" ]; then
         echo "Exporting to <stdout>"
         set -x
-        $DOCKERCMD exec -T racedb_8080_primary python3 /RaceDB/manage.py dumpdata core --indent 2
+        docker exec racedb_8080_primary python3 /RaceDB/manage.py dumpdata core --indent 2
 
     else
         if [ -z "$filename" ]; then
@@ -78,11 +83,22 @@ dumpdata() {
         fi
         echo "Exporting from racedb_8080_primary to ${filename}..."
         set -x
-        ( set -x; $DOCKERCMD exec -T racedb_8080_primary python3 /RaceDB/manage.py dumpdata core --indent 2 ) > ${filename}
+        ( set -x; docker exec racedb_8080_primary python3 /RaceDB/manage.py dumpdata core --indent 2 ) > ${filename}
         set +x
         echo "Export saved to ${filename}..."
     fi
 
+}
+bash() {
+    set -x
+    docker exec -ti $1 /bin/bash
+}
+qlstatus() {
+    IPADDRESS=$(docker exec qlmuxd sed -n -e 's/qlmuxd.local//' -e 's/ *qlmuxd//p' /etc/hosts)
+    telnet $IPADDRESS 9100
+}
+racedb_ssh() {
+    docker exec -ti racedb_8080_primary ssh racedb@qllabels.local pwd
 }
 
 # ###############################################################################################################################
@@ -105,6 +121,7 @@ usage_notrunning() {
     stderr
     stderr "    help                - display usage"
     stderr "    start               - start ${role} RaceDB container set"
+    stderr "    systeminfo          - load systeminfo.json"
     stderr
     stderr "    restore_basebackup  - restore from local basebackup and start"
     stderr "    restore_standby     - restore from local standby in failover mode and start"
@@ -156,9 +173,15 @@ if [ ${POSTGRESQL_RACEDB_PRIMARY_RUNNING} -eq 1 ] ; then
         restart ) restart ;;
         stop ) stop ;;
         basebackup | base) basebackup;;
-        loaddata) loaddata;;
+        systeminfo ) loaddata systeminfo.json;;
+        loaddata) loaddata ${*};;
         dumpdata) dumpdata;;
         pull) pull;;
+        racedb) bash racedb_8080_primary;;
+        racedb_ssh) racedb_ssh;;
+        qllabels) bash qllabels_qlmuxd;;
+        qlmuxd) bash qlmuxd;;
+        qlstatus) qlstatus;;
         help | *)  usage_running;;
     esac
     exit 0
