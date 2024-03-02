@@ -1,0 +1,49 @@
+version: "3.4"
+services:
+
+    racedb:
+        image: esitarski/racedb:latest
+        restart: always
+        container_name: racedb_8080_${ROLE}
+        ports:
+            - "8080:8000"
+        environment:
+            - sqlite3_database_fname:/racedb-data/RaceDB.sqlite3
+            - PYTHONPATH:/RaceDB
+            - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
+            - TIME_ZONE=America/Vancouver
+            - DATETIME_FORMAT=ISO
+            - VERBOSITY=1
+            #
+            # Uncomment to use RFID reader, see ../docker.env
+            - RFID_READER_HOST=${RFID_READER_HOST_8080}
+            - RFID_TRANSMIT_POWER=${RFID_TRANSMIT_POWER_8080}
+            - RFID_RECEIVER_SENSITIVITY=${RFID_RECEIVER_SENSITIVITY_8080}
+            #- LLRP_SERVER_HOST=
+        #env_file:
+        #    ../racedb/racedb.env
+        hostname: racedb_8080_${ROLE}.local
+        #command:
+        #    bash -c "apk add --no-cache openssh-client ca-certificates bash"
+        #    #bash -c "apk --upgrade add openssh"
+        networks:
+            racedb:
+        depends_on:
+            - db
+        volumes:
+            - ../db/${ROLE}/run:/var/run/postgresql
+            - ../db/${ROLE}/lib:/var/lib/postgresql
+            - ../db/${ROLE}/data:/var/lib/postgresql/data
+            - ../db/${ROLE}/racedb-loaddata:/racedb-loaddata
+            - ../racedb/.nobackup:/racedb-data/.nobackup
+            #- ../test.json:/racedb-data/test.json
+            - ../racedb/01-apk.sh:/docker-entrypoint-init.d/01-apk.sh
+            - ../racedb/02-postgres.sh:/docker-entrypoint-init.d/02-postgres.sh
+            #- ../racedb/94-super.sh:/docker-entrypoint-init.d/94-super.sh
+            - ../racedb/check.sh:/check.sh
+            - ../racedb/simple.py:/simple.py
+            - ../racedb/index.html:/var/local/www/index.html
+            - ../racedb/lpr:/usr/local/bin/lpr
+
+networks:
+    racedb:
