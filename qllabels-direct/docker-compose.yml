@@ -19,7 +19,7 @@ version: '3.6'
 services:
 
     qllabels_direct:
-        image: stuartlynne/qllabels:0.1
+        image: stuartlynne/qllabels:0.7
         container_name: qllabels_direct
         hostname: qllabels.local
         restart: always
