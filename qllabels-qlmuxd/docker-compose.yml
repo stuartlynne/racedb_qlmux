@@ -23,14 +23,14 @@ version: '3.6'
 services:
 
     qllabels_qlmuxd:
-        image: stuartlynne/qllabels:0.1
+        image: stuartlynne/qllabels:0.6
         container_name: qllabels_qlmuxd
         hostname: qllabels.local
         restart: always
         networks:
             racedb:
         volumes:
-            - ../qllabels-qlmuxd/qllabels-qlmuxd.cfg:/usr/local/etc/qllabels.cfg
+            - ../qllabels-qlmuxd/qllabels.cfg-qlmuxd:/usr/local/etc/qllabels.cfg
         environment:
             PYTHONUNBUFFERED: 1
 
