@@ -30,7 +30,7 @@ services:
         networks:
             racedb:
         volumes:
-            - ../qllabels-qlmuxd/qllabels.cfg-qlmuxd:/usr/local/etc/qllabels.cfg
+            - ../qllabels-qlmuxd/qllabels-qlmuxd.cfg:/usr/local/etc/qllabels.cfg
         environment:
             PYTHONUNBUFFERED: 1
 
