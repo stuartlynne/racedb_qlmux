@@ -38,18 +38,25 @@ Apt:
 - docker-compose
 - openssh-server
 
-### Portainer
-Portainer is a web based tool for monitoring, starting and stopping containers.
+### Portainer-CE
+Portainer-CE is a web based tool for monitoring, starting and stopping containers.
 
 ```
 #!/bin/bash
 set -x
-docker run -d -p 9000:9000 --name=portainer --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
 
 ```
 
 ### SSH
 
 scp name@host:ssh.tgz .
+
+### 10.0.0
+
+- route  to verify that 10.0.0 is not in use by another interface or bridge
+- brctl show to see bridge info
+- docker network ls to see if docker network is using bridge
+- docker network rm to remove
+
 
 

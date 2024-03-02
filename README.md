@@ -1,14 +1,62 @@
 # racedb\_qlmuxd
+## Tue 27 Feb 2024 07:40:50 PM PST
 ## Sun Sep 12 16:29:56 PDT 2021 
 ## stuart.lynne@gmail.com
 
-The *racedb\_qlmuxd* git archive implements management scripts to support running RaceDB, Postgresql
-and qlmuxd in containers.
+This *racedb\_qlmuxd* git archive implements management scripts to support running RaceDB, Postgresql
+and qlmuxd in containers on a Linux system.
 
 The primary features:
 1. Implementation of *PRIMARY* and *STANDBY* container sets to support hot-standby backup on a second hardware system
-2. Support for *qllabels* which converts RaceDB label PDF files to Brother Raster files for printing on *QL* label printers
+2. Support for *qllabels* which supports fast conversion of RaceDB label PDF files to 
+Brother Raster files for printing on Brother *QL* label printers
 3. Support for *qlmuxd* which supports multiplexing label printing to target sets of *QL* label printers with failover support.
+4. Reduction of the number of volunteers required to do registration at an event.
+
+This setup is a containerized version of what was used to support thirty plus events per year from 2017-2019,
+ranging in size from 80 to 600 entries.
+
+QLMuxd allowed for using three small label printers and two large label printers to support:
+- Frame Plate numbers
+- Arm band numbers
+- BIB numbers
+
+QLMUxd automatically detects common printer faults (paper jam, paper out, lid open) and 
+sends jobs to the backup for the printer.
+
+The use of low cost RFID tags meant racers could keep them. And if they did another event RaceDB
+could quickly find them. 
+
+For large events four registration stations and two kiosks were used. Roughly 75% of the racers
+were pre-registered but RaceDB allowed for fast registration of day-of entries. 
+
+Kiosks allowed pre-registered entrants that already had their (previously issued) BIB and Frame plate to 
+self-scan their tag to verify that they were properly registered. 
+
+Note that this had the side-effect
+of verifying that they had a Frame Plate (aka RFID tag) that was properly programmed, readable and 
+correctly associated with them. I.e. 99% of the way to correctly getting them into CrossMgr
+for the event. Effectively as long as they don't lose their tag between checkin and the event
+they will be seen by the timing system.
+
+Roughly:
+- confirming a registration with existing tag - 10-15 seconds
+- confirming a registration with lookup, and then creation of new tag - less than 1 minute
+- adding a new rider from scratch - less then 2 minutes
+- adding a registration with existing tag - 30-45 seconds
+
+Our spring series events would have between 100-150 entries, and all day of event
+registration was generally completed with two or three stations in less than one hour.
+
+### BIB and Frame Numbers
+
+Printing BIB and Frame numbers at the event is a big win. Effectively this reduces 
+the number of volunteers required. No need to "assign" numbers from a pool of available 
+numbers and then find a pre-printed frame plate and BIB.
+
+Printing on-demand takes a few seconds (hit print, hand the entrant his new RFID tag frameplate and a blank BIB).
+
+
 
 
 ## Installation
@@ -51,6 +99,46 @@ sudo ./primary.sh start
 On the *STANDBY* system:
 ```
 sudo ./standby.sh start
+```
+
+### SystemInfo
+
+The initial default configuration for RaceDB needs to be changed to support
+printing labels via the QLLabel program. 
+
+To allow quick reset of RaceDB including some SystemInfo defaults the systeminfo.json
+file can be loaded. 
+
+```
+sudo ./primary.sh systeminfo   # optional to set SystemInfo
+```
+
+The provided sample changes the label options to be correct for the qllabels container.
+
+```
+    "print_tag_option": 1,
+    "server_print_tag_cmd": "ssh -o StrictHostKeyChecking=no racedb@qllabels.local QLLABELS.py \"$1\"",
+```
+
+### SSH Fix
+
+
+
+### Load Data
+
+If you have a backup copy of the RaceDB database as a JSON file that can be loaded
+with:
+```
+    ./primary.sh loaddata racedb-backup.json
+```
+
+*N.b. That will replace the entire RaceDB database!*
+
+### Dump Data
+
+A backup copy of the RaceDB data as a JSON file can be created with:
+```
+    ./primary.sh dumpdata
 ```
 
 
@@ -116,7 +204,7 @@ The *qllabels* container set maintains an open *ssh* port (on the internal raced
 Set in RaceDB/systeminfo:
 
 ```
-ssh racedb@qllabels.local QLLABELS.py $1
+ssh -o StrictHostKeyChecking=no racedb@qllabels.local QLLABELS.py $1
 ```
 
 The script will convert the PDF label and send directly to the required label printer.
@@ -125,11 +213,18 @@ This is intended for use when only a single registration station is used.
 
 *If more than one label is printed from multiple stations they will not be correctly printed.*
 
-To use:
+To use add to the *CONTAINER_YML_LIST*:
+
 ```
-    cd qllabels-direct
-    # edit qllabels-direct.cfg for printer IP addresses
-    sudo ./run.sh
+CONTAINER_YML_LIST=(
+    ./postgresql/docker-compose.yml
+    ./racedb/docker-compose.yml
+#    ./qllabels-qlmuxd/docker-compose.yml
+    ./qllabels-direct/docker-compose.yml
+#    ./racedb/docker-compose-8080.yml
+#    ./racedb/docker-compose-8081.yml
+    )
+
 ```
 
 
@@ -165,15 +260,29 @@ table or remote check-in kiosks.
 *qlmuxd* is a Brother QL printer spooler that *RaceDB* can use to print frame
 and bib numbers on small and large labels.
 
-To use:
+To use add to the *CONTAINER_YML_LIST*:
+
 ```
-    cd qllabels-qlmuxd
-    # edit qllabels-qlmuxd.cfg for printer IP addresses
-    sudo ./run.sh
-```
+CONTAINER_YML_LIST=(
+    ./postgresql/docker-compose.yml
+    ./racedb/docker-compose.yml
+    ./qllabels-qlmuxd/docker-compose.yml
+#    ./qllabels-direct/docker-compose.yml
+#    ./racedb/docker-compose-8080.yml
+#    ./racedb/docker-compose-8081.yml
+    )
 
 N.b. This *MUST* be done after the RaceDB and PostGres containers have been created and started
 as they create the required network that the *qlmuxd* container will use.
+
+```
+
+Set in RaceDB/systeminfo:
+
+```
+ssh -o StrictHostKeyChecking=no racedb@qllabels.local QLLABELS.py $1
+```
+
 
 
 
