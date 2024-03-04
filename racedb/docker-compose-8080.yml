@@ -1,8 +1,10 @@
-version: "3.6"
+version: "3.4"
 services:
 
     racedb:
-        image: esitarski/racedb:latest
+        #image: esitarski/racedb:latest
+        image: esitarski/racedb:v3.0.93-beta-689e615
+        #image: esitarski/racedb:v3.0.94-beta-7e50eb1
         restart: always
         container_name: racedb_8080_${ROLE}
         ports:

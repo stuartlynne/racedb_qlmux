@@ -18,7 +18,7 @@
 #
 # RaceDB Configuration: ssh racedb@qllabels.local QLLABELS.py $1
 
-version: '3.6'
+version: '3.4'
 
 services:
 
