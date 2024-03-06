@@ -19,8 +19,12 @@ Work around is to fall back to Mint 21.
     - black on white
     - 110x40
 
+- panel
+    - auto-hide on
+
 - power management
     - never shutdown when plugged in
+    - do nothing if lid shut
     - shutdown after 30 minutes if on battery
     - ask if shutdown button is pressed
 
@@ -28,6 +32,9 @@ Work around is to fall back to Mint 21.
     - delay 30 minutes
     - lock computer when put to sleep OFF
     - lock computer after screensaver starts OFF
+
+- mouse-touchpad
+    - disable touchpad if mouse connected
 
 ### Other Programs
 

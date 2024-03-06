@@ -21,11 +21,41 @@ to quickly get RaceDB using an *Impinj* RFID reader and Brother QL Label Printer
 5. One or more QL1060N for printing BIB numbers
 6. Optional copy of exported Racedb.json data
 7. One or more Windows, Mac or Chromebook laptops for registration stations
+8. Small WiFi Router with 4-port Ethernet switch
+
 
 ## Clone Archive
 ```
 git clone https://github.com/stuartlynne/racedb_qlmux
 ```
+
+## Network Setup
+
+Personal preference, but I prefer static IP addresses for everything:
+
+- WiFi SSID - racedb
+- Network 
+    - 192.168.40/24 - laptops, printers, router
+    - 10/8 - Impinj RFID Readers
+
+I setup the Impinj RFID readers with a 10.NN.NN.NN address so that they can be easily 
+swapped. The NN.NN.NN is the decimal equivalent of the last three hex numbers of the
+reader's MAC address.
+
+```
+    MAC  00:16:25:10:15:70
+    IPv4 10.16.21.112
+```
+
+Both Windows and Linux allow for setting the network correctly:
+
+- IP Address: 192.168.40.40
+- Mask: 255.255.255.0
+- Gateway: 192.168.40.254
+
+- Additional IP Address: 10.0.0.40
+- Additional IP Mask: 255.0.0.0
+
 
 ## Linux
 
