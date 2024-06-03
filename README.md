@@ -1,9 +1,19 @@
-# racedb\_qlmuxd
+# RaceDB QLMux 
 ## Tue 27 Feb 2024 07:40:50 PM PST
 ## Sun Sep 12 16:29:56 PDT 2021 
 ## stuart.lynne@gmail.com
 
-This *racedb\_qlmuxd* git archive implements management scripts to support running RaceDB, Postgresql
+This is a revised version of the *racedb\_qlmuxd* git archive that implements management scripts to
+support running RaceDB, Postgresql and qlmuxd in containers on a Linux system.
+
+This is updated to use the newer *qlmux_proxy*, an upgraded version of qlmuxd that uses *SNMP*
+to find and monitor the status of Brother QL printers and Impinj RFID readers.
+
+In addition a *Traefik* container is used to provide a reverse proxy to allow access to the
+RaceDB web interface. That eliminates various issues with accessing RaceDB from modern browsers. 
+E.g. *Chrome* makes it difficult to download files from a site that is not *https*.
+
+This *racedb\_qlmux* git archive implements management scripts to support running RaceDB, Postgresql
 and qlmuxd in containers on a Linux system.
 
 The primary features:
@@ -296,53 +306,35 @@ See the first few lines of *racedb.sh*:
 
 ```
 PRIMARY="docker-compose 
-    -f ./postgres/docker-compose-primary.yml 
-    -f ./racedb/docker-compose-8080.yml 
-    -f ./racedb/docker-compose-8081.yml 
-    -f ./qllabels-qlmuxd/docker-compose.yml"
+    -f ./postgres/docker-compose.yml 
+    -f ./racedb/docker-compose.yml 
+    -f ./qlmux_proxy/docker-compose.yml
+    -f ./traefik/docker-compose.yml
+    "
 ```
 
 This specifies which *docker-compose.yml* files your use of *RaceDB* requires.
 
-## docker-racedb/docker-compose-808N.yml
+## racedb/docker-compose.yml
 
 These implement one or more *RaceDB* services. Each can be configured to use a different *RFID_READER_HOST*.
 
-
-## postgres/docker-compose-primary.yml
+## postgres/docker-compose.yml
 
 This is the *postgres* service configuration.
 
-## docker-qllabels-qlmuxd/docker-compose.yml
+## qlmux_proxy/docker-compose.yml
 
 This implements two services:
 
-- qllabels\_qlmuxd
-- qlmuxd
+- qlmux_proxy
 
 *RaceDB* will use ssh to send labels to the qllabels_qlmuxd service, which
 in turn will convert the PDF file into Brother Raster data which it will
 send to the *qlmuxd* service. 
 
-The *qlmuxd* service will in turn send the raster data to the appropriate
+The *qlmux_proxy* service will in turn send the raster data to the appropriate
 Brother QL printer.
-
-## docker-qllabels-direct/dockger-compose.yml
-
-This implements a single service:
-
-- qllabels\_qlmuxd
-
-*RaceDB* will use ssh to send labels to the qllabels_qlmuxd service, which
-in turn will convert the PDF file into Brother Raster data which it will
-send to directly to the Brother Printers.
-
-*N.B. This is only appropriate when the Brother QL printers are only
-used by a single registration clerk. Multiple people printing to a
-printer will result in overlapping printouts.*
-
-
-## 
 
 
 ##### vim: textwidth=0
