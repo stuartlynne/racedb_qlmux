@@ -1,0 +1,95 @@
+#
+# RaceDB QLLabels Docker Compose file
+# Wed Jun  5 12:36:45 PM PDT 2024
+# stuart.lynne@gmail.com
+#
+# This file will create two containers:
+# 1. A PostgreSQL database container
+# 2. A RaceDB container customized with qllabels
+#
+# This container is set up to use:
+#   - a proxy for printing and RFID using the qlmux_proxy container. 
+#   - support using traefik for an https proxy 
+#
+# qllabels supports printing frame and bib labels using Brother QL printers 
+# by sending the label data to another container running qlmux_proxy. 
+#
+# qlmux_proxy is a server that supports printing on a pool of Brother QL Printers and
+# can act as a proxy to an Impinj RFID reader. It uses SNMP to discover both the printers
+# and the RFID reader, removing the need to manually configure the IP addresses of the
+# RFID reader in RaceDB.
+#
+# See the qlmux_proxy container definition in this project for more information.
+#
+# See the traifik_racedb container definition is this project for more information on
+# how to set of the https proxy. It is optional, and requires that you have a DNS
+# provider that supports LetsEncrypt DNS-01 challenges using an API key.
+#
+# This file is adapted from the RaceDB docker-compose.yml file. The main differences is
+# that it uses a private image of the RaceDB container that includes the qllabels. See
+# the Dockerfile in this directory for more information.
+#
+# To use this file, you need to set the following environment variables in a .env file:
+#   RACEDB_PORT=8000
+#   RACEDB_HOSTNAME=racedb.local
+#   RFID_READER_HOST=127.0.0.1
+#   RFID_TRANSMIT_POWER=40
+#   RFID_RECEIVER_SENSITIVITY=20
+#   CSRF_TRUSTED_ORIGINS=https://racedb.example.com
+
+services:
+    db:
+        image: postgres:15-alpine
+        restart: always
+        container_name: postgresql_racedb_app
+        environment:
+            POSTGRES_PASSWORD: 5wHYUQ9qmttpq58EV4EG
+        networks:
+            racedb:
+        hostname: postgresql_db_app
+        volumes:
+            - ./postgresql-racedb-data:/var/lib/postgresql/data
+            - ./postgresql-racedb-varrun:/var/run/postgresql
+
+    racedb:
+        image: racedb_qllabels:private
+        restart: always
+        container_name: ${CONTAINER_NAME}
+
+        # See comments on .env, this DOES NOT WORK to get environment variables for customizing this
+        # file, docker-compose.yml. It only makes the variables available to the container,
+        # We use ${RACEDB_PORT} in the ports section. This is a limitation of docker-compose.
+        # env_file:
+        #    - .env
+        
+        # Set the following in the .env file. Note that we set the container envinronment variables
+        # explicitly here, from the ones in the .env file.
+        environment:
+            - RACEDB_PORT=${RACEDB_PORT}
+            - RFID_READER_HOST=${RFID_READER_HOST}
+            - RFID_TRANSMIT_POWER=${RFID_TRANSMIT_POWER}
+            - RFID_RECEIVER_SENSITIVITY=${RFID_RECEIVER_SENSITIVITY}
+
+            - sqlite3_database_fname:/racedb-data/RaceDB.sqlite3
+            - PYTHONPATH:/RaceDB
+            - RACEDBLOGFILE:/racedb-data/RaceDB-log.txt
+
+        # Set the following in the .env file. See comments above.
+        ports:
+            - ${RACEDB_PORT}:8000
+
+        hostname: ${RACEDB_HOSTNAME}
+        networks:
+            racedb:
+        depends_on:
+            - db
+        volumes:
+            - ./postgresql-racedb-data:/var/lib/postgresql/data
+            - ./postgresql-racedb-varrun:/var/run/postgresql
+            - ./racedb-data:/racedb-data
+volumes:
+    postgresql-racedb-data:
+    postgresql-racedb-varrun:
+
+networks:
+    racedb:
