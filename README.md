@@ -1,30 +1,25 @@
 # RaceDB QLMux 
-## Tue 27 Feb 2024 07:40:50 PM PST
-## Sun Sep 12 16:29:56 PDT 2021 
+## Mon Jun  3 07:25:05 PM PDT 2024
 ## stuart.lynne@gmail.com
 
 This is a revised version of the *racedb\_qlmuxd* git archive that implements management scripts to
-support running RaceDB, Postgresql and qlmuxd in containers on a Linux system.
+support running RaceDB, Postgresql, qlmux_proxy and traefik in containers on a Linux system.
 
 This is updated to use the newer *qlmux_proxy*, an upgraded version of qlmuxd that uses *SNMP*
 to find and monitor the status of Brother QL printers and Impinj RFID readers.
 
-In addition a *Traefik* container is used to provide a reverse proxy to allow access to the
-RaceDB web interface. That eliminates various issues with accessing RaceDB from modern browsers. 
-E.g. *Chrome* makes it difficult to download files from a site that is not *https*.
+- postgresql - the database server used by RaceDB
+- racedb - the RaceDB web server and application 
+- qlmux_proxy - a proxy to allow RaceDB 
+    - to send labels to Brother Label printers 
+    - connect to a discovered Impinj RFID reader to read and write tags
+- traefik - a reverse proxy to allow access to the RaceDB web interface using *https*
 
-This *racedb\_qlmux* git archive implements management scripts to support running RaceDB, Postgresql
-and qlmuxd in containers on a Linux system.
 
-The primary features:
-1. Implementation of *PRIMARY* and *STANDBY* container sets to support hot-standby backup on a second hardware system
-2. Support for *qllabels* which supports fast conversion of RaceDB label PDF files to 
-Brother Raster files for printing on Brother *QL* label printers
-3. Support for *qlmuxd* which supports multiplexing label printing to target sets of *QL* label printers with failover support.
-4. Reduction of the number of volunteers required to do registration at an event.
 
-This setup is a containerized version of what was used to support thirty plus events per year from 2017-2019,
-ranging in size from 80 to 600 entries.
+~
+~
+~
 
 QLMuxd allowed for using three small label printers and two large label printers to support:
 - Frame Plate numbers
@@ -80,35 +75,26 @@ Clone the archive on two Linux based laptops:
 
 Edit the *docker.env* file to set the required configuration:
 ```
-#
-CONTAINER_YML_LIST=(
-    ./postgresql/docker-compose.yml
-    ./racedb/docker-compose.yml
-    ./qllabels-qlmuxd/docker-compose.yml
+CONTAINER_YML_LIST=(  
+    ./postgresql/docker-compose.yml 
+    ./racedb/docker-compose.yml 
+    #./qlmux_proxy/docker-compose.yml
+    #./traefik/docker-compose.yml
     )
 
-export PRIMARY_HOST=""
-export STANDBY_HOST=""
-
-export DEFAULT_PRIMARY_HOST=192.168.40.17
-export DEFAULT_STANDBY_HOST=192.168.40.16
-
-# Impinj R1000 with Lilly 5dBi PCB UHF RFID Patch antenna wands
-RFID_READER_HOST_8080=192.168.40.101
-RFID_TRANSMIT_POWER_8080=40
-RFID_RECEIVER_SENSITIVITY_8080=5
+# This is for:
+#   - access to an Impinj reader via the qlmux_proxy
+#   - Impinj R1000 with Lilly 5dBi PCB UHF RFID Patch antenna wands
+#
+export RFID_READER_HOST=127.0.0.1
+export RFID_TRANSMIT_POWER=40
+export RFID_RECEIVER_SENSITIVITY=20
 
 ```
 This needs to be copied into the top level of the git archive on both systems.
 
-On the *PRIMARY* system:
 ```
 sudo ./primary.sh start
-```
-
-On the *STANDBY* system:
-```
-sudo ./standby.sh start
 ```
 
 ### SystemInfo
