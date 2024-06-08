@@ -1,0 +1,59 @@
+# N.b. The docker.env file is sourced in the Makefile to allow docker-compose
+# to interpolate variables here in the docker-compose.yml file.
+version: '3'
+services:
+  reverse-proxy:
+    image: traefik:v3.0
+    container_name: ${CONTAINER_NAME}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+    # Load the dnschallenge environment variables from the dnschallenge.env file.
+    # These are used to configure the DNS challenge for Let's Encrypt and should
+    # be kept secret, do not check into archive or version control.
+    env_file:
+    - dnschallenge.env
+
+    command:
+      - "--log.level=${TRAEFIK_LOG_LEVEL}"
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.caServer=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myresolver.acme.dnsChallenge.provider=${TRAEFIK_DNS_PROVIDER}"
+      - "--certificatesresolvers.myresolver.acme.dnsChallenge.disablePropagationCheck=true"
+      - "--certificatesresolvers.myresolver.acme.dnsChallenge.delayBeforeCheck=90"
+      - "--certificatesresolvers.myresolver.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+      - "--accessLog.fields.names.StartUTC=drop"
+      - "--accessLog.filePath=/logs/access.log"
+    network_mode: host  # Run Traefik in host networking mode, required for qlmuxproxy to work
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./letsencrypt:/letsencrypt
+      - ./logs:/logs
+    # Label configuration is one of several options for defining Traefik routers and services.
+    # The dynamic configuration method is cleaner, but this allows us to define the hostname
+    # and ports in the traefik.env file. 
+    labels:
+      # racedb
+      - "traefik.http.routers.racedb.rule=Host(${RACEDB_HOSTNAME})"
+      - "traefik.http.routers.racedb.entrypoints=websecure"
+      - "traefik.http.routers.racedb.tls.certresolver=myresolver"
+      - "traefik.http.routers.racedb.tls.domains[0].sans=${WILDCARD_DOMAIN}"
+      - "traefik.http.routers.racedb.service=racedb-service"
+      - "traefik.http.services.racedb-service.loadbalancer.server.port=${RACEDB_PORT}"
+
+      # qlmuxproxy
+      - "traefik.http.routers.qlmuxproxy.rule=Host(${QLMUXPROXY_HOSTNAME})"
+      - "traefik.http.routers.qlmuxproxy.entrypoints=websecure"
+      - "traefik.http.routers.qlmuxproxy.tls.certresolver=myresolver"
+      - "traefik.http.routers.qlmuxproxy.tls.domains[0].sans=${WILDCARD_DOMAIN}"
+      - "traefik.http.routers.qlmuxproxy.service=qlmuxproxy-service"
+      - "traefik.http.services.qlmuxproxy-service.loadbalancer.server.port=${QLMUXPROXY_PORT}"
+
