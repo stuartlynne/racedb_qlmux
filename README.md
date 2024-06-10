@@ -13,7 +13,7 @@ to find and monitor the status of Brother QL printers and Impinj RFID readers.
 This archive is suitable for use if you need a complete set of containers for RaceDB, Postgresql, qlmux_proxy and traefik.
 
 If you want to add *qlmux_proxy* and *traefik* to an existing *RaceDB* installation you can use the
-|[traefik\_racedb)[https://github.com/stuartlynne/traefik\_racedb)| git archive. That is a 
+|[traefik\_racedb](https://github.com/stuartlynne/traefik\_racedb)| git archive. That is a 
 configuration that can add a reverse proxy and the qlmux_proxy to an existing RaceDB installation.
 
 
@@ -100,11 +100,11 @@ See the README.md in each container directory for details.
 
 | Description | Link |
 | -- | -- |
-|qlmux\_proxy     | https://github.com/stuartlynne/qlmux_proxy|
-|qllabels         | https://github.com/stuartlynne/qllabels/|
-|traefik\_racedb  | https://github.com/stuartlynne/traefik_racedb|
-|racedb\_qlmux    | https://github.com/stuartlynne/racedb_qlmux|
-|wimsey\_timing   | https://github.com/stuartlynne/wimsey_timing|
-[traefik acme-dns | https://doc.traefik.io/traefik/user-guides/docker-compose/acme-dns/|
-|traefik providers| https://doc.traefik.io/traefik/https/acme/#providers|
+|qlmux\_proxy     | (https://github.com/stuartlynne/qlmux_proxy](https://github.com/stuartlynne/qlmux_proxy)|
+|qllabels         | (https://github.com/stuartlynne/qllabels/](https://github.com/stuartlynne/qllabels/)|
+|traefik\_racedb  | (https://github.com/stuartlynne/traefik_racedb](https://github.com/stuartlynne/traefik_racedb)|
+|racedb\_qlmux    | (https://github.com/stuartlynne/racedb_qlmux]](ttps://github.com/stuartlynne/racedb_qlmux)|
+|wimsey\_timing   | (https://github.com/stuartlynne/wimsey_timing](https://github.com/stuartlynne/wimsey_timing)|
+[traefik acme-dns | (https://doc.traefik.io/traefik/user-guides/docker-compose/acme-dns/](https://doc.traefik.io/traefik/user-guides/docker-compose/acme-dns/)|
+|traefik providers| (https://doc.traefik.io/traefik/https/acme/#providers](https://doc.traefik.io/traefik/https/acme/#providers)|
 
