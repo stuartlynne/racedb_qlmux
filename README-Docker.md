@@ -1,5 +1,7 @@
 # Docker 
 
+## Overview as used in this repository 
+
 Docker uses Images and Containers.
 
 Images are used to package up an application and all its dependencies. 
@@ -7,7 +9,7 @@ Images are used to package up an application and all its dependencies.
 Containers are instances of Images that are running as a process on the host machine.
 
 If an public image is being used that does not contain the necessary dependencies, 
-a new image can be created that extends the public image and adds the necessary dependencies.
+a private image can be created that extends the public image and adds the necessary dependencies.
 
 This repository contains support various applications and services that can be run in Docker containers.
 Each application or service has its own directory containing an optional Dockerfile and a docker-compose.yml file.
@@ -18,6 +20,11 @@ will contain additional dependencies or configuration that are not included in t
 
 The docker-compose.yml file is used to define the services that are to be run in containers. It will only define
 the operating parameters for the services, such as the image to use, the ports to expose, and the volumes to mount.
+
+The docker.env file is used to define environment variables that are used to configure the container.
+
+Where necessary additional configuration files can be used to add specific information to the container.
+E.g. traefik_racedb/dnschallenge.env.
 
 
 ## Makefile-docker
@@ -40,3 +47,6 @@ The following targets are available:
 Helper targers:
 - bash: Start a bash shell in the container
 - logs: Show the logs for the container
+
+
+
