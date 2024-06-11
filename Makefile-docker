@@ -39,7 +39,7 @@ test:
 	@echo DOCKERBUILDARGS:$(DOCKERBUILDARGS)
 	@echo CSRF_TRUSTED_ORIGINS:$(CSRF_TRUSTED_ORIGINS)
 	echo
-	env
+	#env
 
 # build the image
 build:

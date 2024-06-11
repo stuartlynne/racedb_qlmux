@@ -16,11 +16,16 @@ If you want to add *qlmux_proxy* and *traefik* to an existing *RaceDB* installat
 |[traefik\_racedb](https://github.com/stuartlynne/traefik\_racedb)| git archive. That is a 
 configuration that can add a reverse proxy and the qlmux_proxy to an existing RaceDB installation.
 
-## qlmux_proxy
+Three container sets are created:
+
+- racedb_qllabels (and postgresql)
+- qlmux_proxy
+- traefik_racedb
+
+The racedb_qllabels container is a container that runs the RaceDB web server and application. It is the
+standard RaceDB container with the addition of the *qllabels* script that allows RaceDB to send labels to
 
 The *qlmux_proxy* container is a proxy that allows RaceDB to send labels to pool of Brother QL label printers.
-
-## traefik
 
 The *traefik* container is a reverse proxy that allows access to the RaceDB web interface using *https*.
 Note that the *traefik* container is configured to use a DNS challenge to obtain certificates from LetsEncrypt.
@@ -34,30 +39,6 @@ needs outboud access to the internet to obtain the certificates.
 There is no need to have the domain
 pointing to the server running the containers, although that can be done if you want to use the domain
 name to access the server from the Internet.
-
-
-
-
-## Containers Created
-
-- postgresql - the database server used by RaceDB
-- racedb - the RaceDB web server and application 
-- qlmux_proxy - a proxy to allow RaceDB 
-    - to send labels to Brother Label printers 
-    - connect to a discovered Impinj RFID reader to read and write tags
-- traefik - a reverse proxy to allow access to the RaceDB web interface using *https*
-
-
-The postgresql and racedb containers are based on the official postgresql and racedb images.
-The racedb container has a private image built from the official image that adds the *qllabels*
-script.
-
-The qlmux_proxy container is built from a private image that extends the python alpine image
-with the tools and libraries necessary to support the *qlmux_proxy* application.
-
-The traefik container is built from the official traefik image. It is configured to use a 
-DNS challenge to obtain certificates from LetsEncrypt. See the README.md in the *traefik* directory
-for details.
 
 
 ## Background RFID
@@ -87,7 +68,7 @@ Kiosks allowed pre-registered entrants that already had their (previously issued
 self-scan their tag to verify that they were properly registered. 
 
 
-## BIB and Frame Numbers
+## Background BIB and Frame Numbers
 
 Printing BIB and Frame numbers at the event is a big win. Effectively this reduces 
 the number of volunteers required. No need to "assign" numbers from a pool of available 
@@ -115,19 +96,11 @@ Edit the *docker.env* file in each container directory to set the required confi
 
 See the README.md in each container directory for details.
 
+## [racedb\_qllabels](racedb_qllabels/README.md)
+## [qlmux\_proxy](qlmux_proxy/README.md)
+## [traefik\_racedb](traefik_racedb/README.md)
+## [Docker usage](docker.md)
+## [makefile](makefile.md)
+## [related](related.md)
 
-
-## Related 
-
-| Description | Link |
-| -- | -- |
-|RaceDB           | [https://github.com/esitarski/RaceDB](https://github.com/esitarski/RaceDB)|
-|CrossMgr         | [https://github.com/esitarski/CrossMgr](https://github.com/esitarski/CrossMgr)| 
-|qlmux\_proxy     | [https://github.com/stuartlynne/qlmux_proxy](https://github.com/stuartlynne/qlmux_proxy)|
-|qllabels         | [https://github.com/stuartlynne/qllabels/](https://github.com/stuartlynne/qllabels/)|
-|traefik\_racedb  | [https://github.com/stuartlynne/traefik_racedb](https://github.com/stuartlynne/traefik_racedb)|
-|racedb\_qlmux    | [https://github.com/stuartlynne/racedb_qlmux](ttps://github.com/stuartlynne/racedb_qlmux)|
-|wimsey\_timing   | [https://github.com/stuartlynne/wimsey_timing](https://github.com/stuartlynne/wimsey_timing)|
-[traefik acme-dns | [https://doc.traefik.io/traefik/user-guides/docker-compose/acme-dns/](https://doc.traefik.io/traefik/user-guides/docker-compose/acme-dns/)|
-|traefik providers| [https://doc.traefik.io/traefik/https/acme/#providers](https://doc.traefik.io/traefik/https/acme/#providers)|
 
