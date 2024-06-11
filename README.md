@@ -16,6 +16,27 @@ If you want to add *qlmux_proxy* and *traefik* to an existing *RaceDB* installat
 |[traefik\_racedb](https://github.com/stuartlynne/traefik\_racedb)| git archive. That is a 
 configuration that can add a reverse proxy and the qlmux_proxy to an existing RaceDB installation.
 
+## qlmux_proxy
+
+The *qlmux_proxy* container is a proxy that allows RaceDB to send labels to pool of Brother QL label printers.
+
+## traefik
+
+The *traefik* container is a reverse proxy that allows access to the RaceDB web interface using *https*.
+Note that the *traefik* container is configured to use a DNS challenge to obtain certificates from LetsEncrypt.
+
+This allows for using a domain name to access the RaceDB web interface using *https* with a valid certificate.
+
+Note that there is no requirement for any DNS setup for the domain names being used other than the base 
+domain being owned by you and that you have an API key allowing access to your DNS provider. The container
+needs outboud access to the internet to obtain the certificates. 
+
+There is no need to have the domain
+pointing to the server running the containers, although that can be done if you want to use the domain
+name to access the server from the Internet.
+
+
+
 
 ## Containers Created
 
@@ -100,6 +121,8 @@ See the README.md in each container directory for details.
 
 | Description | Link |
 | -- | -- |
+|RaceDB           | [https://github.com/esitarski/RaceDB](https://github.com/esitarski/RaceDB)|
+|CrossMgr         | [https://github.com/esitarski/CrossMgr](https://github.com/esitarski/CrossMgr)| 
 |qlmux\_proxy     | [https://github.com/stuartlynne/qlmux_proxy](https://github.com/stuartlynne/qlmux_proxy)|
 |qllabels         | [https://github.com/stuartlynne/qllabels/](https://github.com/stuartlynne/qllabels/)|
 |traefik\_racedb  | [https://github.com/stuartlynne/traefik_racedb](https://github.com/stuartlynne/traefik_racedb)|
