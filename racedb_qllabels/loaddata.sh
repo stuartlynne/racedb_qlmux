@@ -1,5 +1,8 @@
 #!/bin/bash
 
 set -x
+CONTAINER=$(basename $(/bin/pwd))
+echo $CONTAINER
 
-gzip < $1 | docker exec -i racedb_8080_primary python3 /RaceDB/manage.py loaddata --format=json -
+docker exec -i ${CONTAINER} python3 /RaceDB/manage.py loaddata --format=json -
+#gzip < $1 | docker exec -i ${CONTAINER} python3 /RaceDB/manage.py loaddata --format=json -
