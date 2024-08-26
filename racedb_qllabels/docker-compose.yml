@@ -87,6 +87,7 @@ services:
             - ./postgresql-racedb-data:/var/lib/postgresql/data
             - ./postgresql-racedb-varrun:/var/run/postgresql
             - ./racedb-data:/racedb-data
+            - ./02-rfidproxy.sh:/docker-entrypoint-init.d/02-rfidproxy.sh
 volumes:
     postgresql-racedb-data:
     postgresql-racedb-varrun:
