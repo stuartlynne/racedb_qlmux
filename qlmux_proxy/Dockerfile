@@ -9,7 +9,8 @@ FROM python:3.10.0-alpine
 #RUN apt-get update && apt-get install -y vim less psmisc netcat-openbsd telnet libsnmp-dev pdftk ghostscript dos2unix
 RUN apk add --no-cache bash vim git less busybox-extras netcat-openbsd net-snmp-dev make poppler-utils
 RUN apk add --virtual build-deps gcc python3-dev musl-dev 
-RUN apk add jpeg-dev zlib-dev libjpeg
+RUN apk add jpeg-dev zlib-dev libjpeg 
+
 
 # install openssh and generate keys
 RUN apk add openssh
@@ -40,12 +41,15 @@ RUN cd /qllabels && make install
 
 # pysnmp-lextudio is the current version of pysnmp, supports SNMP broadcast 
 # it does not install properly via setup.py
-RUN python3 -m pip install pysnmp-lextudio
+RUN python3 -m pip install pysnmp-lextudio deepdiff
 
 # install qlmux_proxy
+run python3 -m pip install --no-cache numpy
 RUN cd / && git clone https://github.com/stuartlynne/qlmux_proxy.git 
 RUN cd /qlmux_proxy && make install 
 
 # two entry points, one for the proxy, one for the sshd
 ENTRYPOINT ["/bin/sh", "-c", "/usr/sbin/sshd -D -p 9122 -o PermitEmptyPasswords=yes -o PubkeyAuthentication=no -o PermitEmptyPasswords=yes -o PrintMotd=no & race_proxy"]
+# for testing
+#ENTRYPOINT ["/bin/sh", "-c", "/usr/sbin/sshd -D -p 9122 -o PermitEmptyPasswords=yes -o PubkeyAuthentication=no -o PermitEmptyPasswords=yes -o PrintMotd=no "]
 
