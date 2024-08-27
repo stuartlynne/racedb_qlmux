@@ -25,7 +25,7 @@ DNS Challenge is required to obtain a wildcard certificate. This is done using t
 Which in turn requires a DNS provider that supports the ACME DNS-01 challenge.
 
 Testing of the DNS Challenge was done with a *Namecheap* account. 
-The example uses the required NAMECHEAP_API_USER and NAMECHEAP_API_KEY values.
+The example uses the required NAMECHEAP\_API\_USER and NAMECHEAP\_API\_KEY values.
 They will have to be replaced with your the appropriate DNS provider keys.
 
 For more information on the Traefik DNS Challenge see:
@@ -38,18 +38,27 @@ For more information on the Traefik DNS Challenge see:
 ```
 export TRAEFIK_EMAIL=stuart.lynne@gmail.com
 export TRAEFIK_DNS_PROVIDER=namecheap
-export WILDCARD_DOMAIN=*.wimsey.dev
+export WILDCARD_DOMAIN=*.wimsey.pro
 
 # Hostnames and ports for RaceDB and QLMuxProxy, 
-export RACEDB_HOSTNAME="racedb.wimsey.dev"
+export RACEDB_HOSTNAME="racedb.wimsey.pro"
 export RACEDB_PORT=9080
-export QLMUXPROXY_HOSTNAME="qlmuxproxy.wimsey.dev"
+export QLMUXPROXY_HOSTNAME="qlmuxproxy.wimsey.pro"
 export QLMUXPROXY_PORT=9180
 
 # Traefik configuration
 export TRAEFIK_LOG_LEVEL=DEBUG
 export TRAEFIK_DNS_DELAY_BEFORE_CHECK=60
 ```
+
+## RaceDB CSRF
+RaceDB is built with *django* which will defaults to not allowing HTTPS connections
+from unknown domains. *CSRF\_TRUSTED\_ORIGINS* must be present and specify the
+*racedb.wimsey.pro* domain.
+
+N.b. See *racedb_qllabels* docker.env file, and Dockerfile which runs *csrf.py* 
+when building the RaceDb private image.
+
 
 ## DNS Challenge
 
@@ -68,10 +77,10 @@ export NAMECHEAP_API_KEY=f1282039d149419ba1ae8a38d79e3180
 
 The Makefile contains the following commands:
 
-- make up - start traefik_racedb container
-- make down - stop traefik_racedb container
-- make clean - remove traefik_racedb container
-- make really-clean - remove traefik_racedb container 
-- make bash - start a bash shell in traefik_racedb container
+- make up - start traefik\_racedb container
+- make down - stop traefik\_racedb container
+- make clean - remove traefik\_racedb container
+- make really-clean - remove traefik\_racedb container 
+- make bash - start a bash shell in traefik\_racedb container
 - make logs - show container logs
 - make test - show variables
