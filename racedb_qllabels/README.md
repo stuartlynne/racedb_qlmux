@@ -35,12 +35,13 @@ To use this file, you need to set the following environment variables in a .env 
 
 
 ## Backup
-By default the database is backed up to the */racedb-data/* directory every time the container is started.
+The database is not backed up to the */racedb-data/* directory every time the container is started.
 
-This can be disabled by setting creating a file:
+This can be disabled by removing this file: 
 ```
-    */racedb-data/.nobackup*
+    ./racedb-data/.NOBACKUP
 ```
+
 
 ## csrf.py
 
