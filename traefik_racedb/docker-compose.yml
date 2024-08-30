@@ -5,6 +5,7 @@ services:
   reverse-proxy:
     image: traefik:v3.0
     container_name: ${CONTAINER_NAME}
+    restart: always
     logging:
       options:
         max-size: "10m"
