@@ -17,9 +17,11 @@ export CONTAINER_NAME := $(CONTAINER)
 # make the contents of docker.env or $(CONTAINER).env available to docker-compose 
 IMAGE = $(shell basename $(CURDIR)):private
 ENV = $(shell basename $(CURDIR)).env
+HOSTNAME = $(shell hostname)
 
 -include docker.env
 -include $(ENV)
+.EXPORT_ALL_VARIABLES:
 
 .PHONY: all build up down clean really-clean bash logs test
 
@@ -38,6 +40,7 @@ test:
 	@echo IMAGE:$(IMAGE)
 	@echo DOCKERBUILDARGS:$(DOCKERBUILDARGS)
 	@echo CSRF_TRUSTED_ORIGINS:$(CSRF_TRUSTED_ORIGINS)
+	@echo HOSTNAME: $(HOSTNAME)
 	echo
 	#env
 
@@ -46,11 +49,9 @@ build:
 	echo BUILD
 	if [ -s 'Dockerfile' ]; then docker build ${DOCKERBUILDARGS} --tag $(IMAGE) .;  fi
 
-#	if [ -s 'Dockerfile' ]; then docker build --build-arg CSRF_TRUSTED_ORIGINS=$(CSRF_TRUSTED_ORIGINS) --tag $(IMAGE) .;  fi
 
 # start the container
 up: build
-	#if [ -s 'Dockerfile' ]; then docker image inspect $(IMAGE) > /dev/null 2>&1 || make build; fi
 	docker-compose up -d
 
 # stop the container
