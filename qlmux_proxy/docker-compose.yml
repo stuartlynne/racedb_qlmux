@@ -6,7 +6,7 @@ services:
     qlmux_proxy:
         image: qlmux_proxy:private
         container_name: ${CONTAINER_NAME}
-        hostname: qlmux_proxy.local
+        hostname: ${HOSTNAME}
         restart: always
         network_mode: host
         environment:
