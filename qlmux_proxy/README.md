@@ -1,4 +1,4 @@
-# qlmux_proxy container
+# racedb_qlmux/qlmux_proxy container
 
 ## Description
 

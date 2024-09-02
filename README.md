@@ -26,6 +26,7 @@ If you want to integrate *QLMux Proxy* and *Traefik* into an existing *RaceDB* i
 ## Related Projects
 
 - **[traefik_racedb](https://github.com/stuartlynne/traefik_racedb)**: Support for QLMux Proxy and Traefik containers to integrate with an existing RaceDB installation.
+- **[qlmux_proxy](https://github.com/stuartlynne/qlmux_proxy)**: The QLMux Proxy application.
 - **[racedb_qlmux](https://github.com/stuartlynne/racedb_qlmux)**: A complete set of containers for implementing PostgreSQL, RaceDB, QLMux Proxy, and Traefik.
 
 ## Installation
@@ -38,6 +39,6 @@ When running the QLMux Proxy container, make sure to use host networking (`--net
 
 
 ## See Also
-[traefik_racedb](traefik_racedb/README.md)
-[qlmux_proxy](qlmux_proxy/README.md)
-[racedb_qllabels](racedb_qllabels/README.md)
+- [traefik_racedb](traefik_racedb/README.md)
+- [qlmux_proxy](qlmux_proxy/README.md)
+- [racedb_qllabels](racedb_qllabels/README.md)

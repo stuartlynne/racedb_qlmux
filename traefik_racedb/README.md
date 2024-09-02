@@ -1,10 +1,39 @@
-# Traefik Container
+# racedb_qlmux/traefik_racedb container
 
 This contains the configuration for the Traefik container.
 
-It is setup to support two other application containers:
+It is setup to support two other application containers, providing HTTPS access to them:
 - racedb_qllabels
 - qlmux_proxy
+
+## DNS Requirements
+  
+The *traefik* container is configured to use a DNS challenge to obtain certificates from LetsEncrypt. 
+This requires that you have a DNS provider that allows for API access to update the DNS records.
+The *traefik* container will use the *acme-dns* challenge to obtain the certificates. 
+
+N.b. Only a single domain is required. The wildcard certificate will be used for all subdomains.
+
+E.g.:
+Required to be registered:
+- wimsey.online - the main domain
+
+Will be used by the Traefik container, these can be optionally used to access the applications
+from the Internet:
+- racedb.wimsey.online - the RaceDB application
+- qlmuxproxy.wimsey.online - the QLMux Proxy application
+
+If Internet access is required add a CNAME record for the subdomains pointing to the external IP address of the server.
+
+E.g.:
+```
+racedb.wimsey.online CNAME whiskey.duckdns.org
+qlmuxproxy.wimsey.online CNAME whiskey.duckdns.org
+```
+
+N.b. Port 443 must be open on the server to allow access to the applications. This may require port forwarding
+if behind a (for example) NAT router.
+
 
 ## Configuration
 

@@ -1,4 +1,4 @@
-# RaceDB QLLabels
+# racedb_qlmux/racedb_qllabels container
 
 ## Overview
 This container is set up to use:
