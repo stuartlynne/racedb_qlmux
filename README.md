@@ -1,106 +1,37 @@
-# RaceDB QLMux 
-## Mon Jun 10 12:01:08 PM PDT 2024
-## stuart.lynne@gmail.com
+
+# RaceDB QLMux
 
 ## Overview
 
-This is a revised version of the *racedb\_qlmuxd* git archive that implements management scripts to
-support running RaceDB, Postgresql, qlmux_proxy and traefik in containers on a Linux system.
+The RaceDB QLMux project is designed to provide a robust and easily deployable system for running RaceDB with integrated support for Brother QL printers and Impinj RFID readers. This system is ideal for events where efficient management of registration and timing is critical.
 
-This is updated to use the newer *qlmux_proxy*, an upgraded version of qlmuxd that uses *SNMP*
-to find and monitor the status of Brother QL printers and Impinj RFID readers.
+### Key Goals:
+- **On-Demand Printing**: Support for on-demand printing of BIB and frame numbers using Brother QL printers.
+- **Simple Configuration**: Easy configuration for RaceDB to support Brother QL printers and Impinj RFID readers.
+- **Automatic Device Discovery**: Use SNMP to discover and manage multiple Brother QL printers and Impinj RFID readers on the network.
+- **Secure Access**: Provide a reverse proxy for secure *https* access to the RaceDB web interface and QLMux Proxy web status page.
 
-This archive is suitable for use if you need a complete set of containers for RaceDB, Postgresql, qlmux_proxy and traefik.
+Wimsey and Escape Velocity have been using Impinj RFID readers and Brother QL label printers to support timing and registration since 2014/2015. The use of low-cost RFID tags allowed racers to retain their tags for future events, enabling RaceDB to quickly recognize returning participants.
 
-If you want to add *qlmux_proxy* and *traefik* to an existing *RaceDB* installation you can use the
-|[traefik\_racedb](https://github.com/stuartlynne/traefik\_racedb)| git archive. That is a 
-configuration that can add a reverse proxy and the qlmux_proxy to an existing RaceDB installation.
+On-demand printing of BIB and frame numbers has significantly reduced the time required for rider registration and check-in at events. These improvements have also decreased the number of volunteers needed. Typically, two or three volunteers can manage the registration and check-in for a 100-200 rider event in less than an hour. With four volunteers, 200-300 riders can be processed in the same time frame. This efficiency assumes approximately 50% pre-registration and 50% day-of registration, with a similar percentage of riders having their own RFID tags.
 
-Three container sets are created:
+## Background
 
-- racedb_qllabels (and postgresql)
-- qlmux_proxy
-- traefik_racedb
+The [racedb_qlmux](https://github.com/stuartlynne/racedb_qlmux) project is a revised version of the older *racedb_qlmuxd* archive. It includes management scripts to support running RaceDB, PostgreSQL, QLMux Proxy, and Traefik in containers on a Linux system.
 
-The racedb_qllabels container is a container that runs the RaceDB web server and application. It is the
-standard RaceDB container with the addition of the *qllabels* script that allows RaceDB to send labels to
+This updated version uses the new *QLMux Proxy*, an enhanced version of qlmuxd, which leverages *SNMP* to find and monitor the status of Brother QL printers and Impinj RFID readers.
 
-The *qlmux_proxy* container is a proxy that allows RaceDB to send labels to pool of Brother QL label printers.
+If you want to integrate *QLMux Proxy* and *Traefik* into an existing *RaceDB* installation, you can use the provided tools and documentation.
 
-The *traefik* container is a reverse proxy that allows access to the RaceDB web interface using *https*.
-Note that the *traefik* container is configured to use a DNS challenge to obtain certificates from LetsEncrypt.
+## Related Projects
 
-This allows for using a domain name to access the RaceDB web interface using *https* with a valid certificate.
-
-Note that there is no requirement for any DNS setup for the domain names being used other than the base 
-domain being owned by you and that you have an API key allowing access to your DNS provider. The container
-needs outboud access to the internet to obtain the certificates. 
-
-There is no need to have the domain
-pointing to the server running the containers, although that can be done if you want to use the domain
-name to access the server from the Internet.
-
-
-## Background RFID
-
-The use of low cost RFID tags meant racers could keep them. And if they did another event RaceDB
-could quickly find them. 
-
-Note that this had the side-effect
-of verifying that they had a Frame Plate (aka RFID tag) that was properly programmed, readable and 
-correctly associated with them. Specifically 99% of the way to correctly getting them into CrossMgr
-for the event. Effectively as long as they don't lose their tag between check-in and the event
-they will be seen by the timing system.
-
-Roughly:
-- confirming a registration with existing tag - 10-15 seconds
-- confirming a registration with lookup, and then creation of new tag - less than 1 minute
-- adding a new rider from scratch - less then 2 minutes
-- adding a registration with existing tag - 30-45 seconds
-
-Our spring series events would have between 100-200 entries, and all day of event
-check-in and registration was completed with two or three stations in less than one hour.
-
-For large events four registration stations and two kiosks were used. Roughly 75% of the racers
-were pre-registered but RaceDB allowed for fast registration of day-of entries. 
-
-Kiosks allowed pre-registered entrants that already had their (previously issued) BIB and Frame plate to 
-self-scan their tag to verify that they were properly registered. 
-
-
-## Background BIB and Frame Numbers
-
-Printing BIB and Frame numbers at the event is a big win. Effectively this reduces 
-the number of volunteers required. No need to "assign" numbers from a pool of available 
-numbers and then find a pre-printed frame plate and BIB.
-
-Printing on-demand takes a few seconds (hit print, hand the entrant his new RFID tag frameplate and a blank BIB).
-
-Benefits:
-- no need to pre-assign numbers
-- no need to pre-print numbers
-- no need to find the correct number in a box of pre-printed bibs
-- lower number of bibs needed (no need to have a full set of bibs for each event)
-- no need for volunteers to assign numbers and find bibs
+- **[traefik_racedb](https://github.com/stuartlynne/traefik_racedb)**: Support for QLMux Proxy and Traefik containers to integrate with an existing RaceDB installation.
+- **[racedb_qlmux](https://github.com/stuartlynne/racedb_qlmux)**: A complete set of containers for implementing PostgreSQL, RaceDB, QLMux Proxy, and Traefik.
 
 ## Installation
 
-Clone the archive on a Linux based laptop:
+Detailed instructions for installation and configuration are provided in the Makefile. For containerized deployment, refer to the `docker/docker.md` file for a simple build and run example.
 
-```
-    git clone https://github.com/stuartlynne/racedb_qlmux.git
+### Note
 
-```
-
-Edit the *docker.env* file in each container directory to set the required configuration.
-
-See the README.md in each container directory for details.
-
-## [racedb\_qllabels](racedb_qllabels/README.md)
-## [qlmux\_proxy](qlmux_proxy/README.md)
-## [traefik\_racedb](traefik_racedb/README.md)
-## [Docker usage](docker.md)
-## [makefile](makefile.md)
-## [related](related.md)
-
-
+When running the QLMux Proxy container, make sure to use host networking (`--network=host`) to allow SNMP broadcast discovery to function correctly.
