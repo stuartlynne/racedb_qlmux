@@ -3,7 +3,7 @@
 
 ## Overview
 
-The RaceDB QLMux project is designed to provide a robust and easily deployable system for running RaceDB with integrated support for Brother QL printers and Impinj RFID readers. This system is ideal for events where efficient management of registration and timing is critical.
+The [RaceDB QLMux Git Archive](https://github.com/stuartlynne/racedb_qlmux) is designed to provide a robust and easily deployable system for running RaceDB with integrated support for Brother QL printers and Impinj RFID readers. This system is ideal for events where efficient management of registration and timing is critical.
 
 ### Key Goals:
 - **On-Demand Printing**: Support for on-demand printing of BIB and frame numbers using Brother QL printers.
