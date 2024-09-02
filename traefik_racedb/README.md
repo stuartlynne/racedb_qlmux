@@ -2,6 +2,10 @@
 
 This contains the configuration for the Traefik container.
 
+It is setup to support two other application containers:
+- racedb_qllabels
+- qlmux_proxy
+
 ## Configuration
 
 - docker.env - copy from docker.env-template and fill in the values
@@ -84,3 +88,14 @@ The Makefile contains the following commands:
 - make bash - start a bash shell in traefik\_racedb container
 - make logs - show container logs
 - make test - show variables
+
+
+## namecheap.com
+*namecheap.com* is a low cost DNS provider that allows for API access to update the DNS records.
+
+You will require an API key from *namecheap.com* to use the DNS challenge and at least one domain name
+registered with *namecheap.com*.
+
+namecheap allows access to the API if you have at least 20 (?) domains registered with them or if
+you have $50US in your account. Low cost domains (such as xxx.online) can be purchased for less than $2US/year.
+

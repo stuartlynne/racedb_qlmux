@@ -6,6 +6,26 @@ This is a container that runs the qlmux_proxy application. It handles printing o
 on Brother QL printers and implements a proxy to handle the communication between *RaceDB* and 
 an Impinj RFID reader.
 
+Printers and Readers are discovered using SNMP broadcasts, and the container will automatically detect and configure them.
+
+The container also provides a web interface to view the status of the printers and RFID readers and determine
+which printers and readers are used.
+
+### Printer Queues
+qlmux_proxy uses two queues to handle spooling of labels to the printers:
+
+    - left - intended for printers used by stations on the left end of the table
+    - right - intended for printers used by stations on the right end of the table
+    - center - backup for all stations
+
+
+By default the label will be printed on the:
+- left (or right) printer that is available and has been idle the longest.
+- If no printer is available, the label will be printed on the center printer. 
+- If there is no center printer available, the label will printed on the other right (or left) printer that is available.
+- If no printer available it will be queued until a printer becomes available.
+
+
 ## Dockerfile
 
 This creates an image based on python:3.10.0-alpine and installs the necessary dependencies.
@@ -26,34 +46,34 @@ Once the container is running, the qlmux_proxy application will be available on 
 - 5084 RFID data to proxy to the Impinj reader 
 - 9180 is a web interface to view the status of printers and rfid readers
 
+## Printer Configuration
 
-## Configuration in RaceDB
+- DHCP - The printer should be configured to use DHCP to get an IP address
+- Hostname - The printer should have a hostname set to the name of the printer
+- Queue - if the hostname ends in "-left" or "-right" the printer will be used for the left or right queue
+otherwise it will be used for the center queue
 
-*RaceDB* needs to be configured to send print data to the qlmux_proxy application. This is done by
-configuring the LP print command in Systeminfo->Printer Configuration. 
+The queue can be changed in the web interface.
 
-There are two options depending on how the RaceDB container is configured:
+## RFID Reader Configuration
+- DHCP -The reader should be configured to use DHCP to get an IP address.
+- Hostname - The reader should have a hostname set to the name of the reader
+- Usage - If the hostname ends in "-table" the reader will be used for the table, if "-kiosk" it will be used for the kiosk
 
-- using qllabels.py $1 if it is available in the RaceDB container
-- ssh to excute qllabels.py on the qlmux_proxy container racedb@qlmux_proxy.local qllabels.py $1
+The usage can be changed in the web interface.
 
-The first option is the simplest and most efficient, but requires the qllabels.py script to be available in the RaceDB container.
+### Table vs Kiosk
+- Table - RaceDB should be configured to use 127.0.0.1
+- Kiosk - RaceDB should be configured to use 127.0.0.2
 
-The second option is slightly more complex, and requires that openssh is installed in the RaceDB container.
 
 
-## qllabels
 
-The qllabels.py script takes the label PDF filename as an argument and the data on <STDIN>. 
 
-The PDF is converted to an image, and the image is converted into the Brother QL Raster format.
 
-The raster data is then sent to the printer via the network using one of 9101, 9102, 9103 or 9104 ports.
 
-- 9101 - small labels from stations 1-2
-- 9102 - small labels from stations 3-4
-- 9103 - large labels from stations 1-2
-- 9104 - large labels from stations 3-4
 
-The station information and size is determined from the label PDF filename.
+
+
+
 

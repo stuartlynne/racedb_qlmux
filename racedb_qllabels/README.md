@@ -2,22 +2,9 @@
 
 ## Overview
 This container is set up to use:
-  - a proxy for printing and RFID using the qlmux\_proxy container. 
+  - an lpr script to forward labels for printing to the qlmux\_proxy container
+  - a rfidproxy for printing and RFID using the qlmux\_proxy container. 
   - support using traefik for an https proxy 
-
-qllabels supports printing frame and bib labels using Brother QL printers 
-by sending the label data to another container running qlmux\_proxy. 
-
-qlmux\_proxy is a server that supports printing on a pool of Brother QL Printers and
-can act as a proxy to an Impinj RFID reader. It uses SNMP to discover both the printers
-and the RFID reader, removing the need to manually configure the IP addresses of the
-RFID reader in RaceDB.
-
-See the qlmux\_proxy container definition in this project for more information.
-
-See the traifik\_racedb container definition is this project for more information on
-how to set of the https proxy. It is optional, and requires that you have a DNS
-provider that supports LetsEncrypt DNS-01 challenges using an API key.
 
 This file is adapted from the RaceDB docker-compose.yml file. The main differences is
 that it uses a private image of the RaceDB container that includes the qllabels. See
@@ -32,15 +19,9 @@ To use this file, you need to set the following environment variables in a .env 
   RFID_RECEIVER_SENSITIVITY=20
   CSRF_TRUSTED_ORIGINS=https://racedb.example.com
 ```
+N.b. The TRANSMIT_POWER and RECEIVER_SENSITIVITY are for the Impinj reader and should be set to the values for your reader
+and the RFID wands in use.
 
-
-## Backup
-The database is not backed up to the */racedb-data/* directory every time the container is started.
-
-This can be disabled by removing this file: 
-```
-    ./racedb-data/.NOBACKUP
-```
 
 
 ## csrf.py
@@ -65,4 +46,33 @@ COPY csrf.sh .
 RUN /csrf.sh
 ```
 
+## Printer Configuration in RaceDB
+
+*RaceDB* needs to be configured to send print data to the qlmux_proxy application. This is done by
+configuring the LP print command in Systeminfo->Printer Configuration. 
+
+A simple *lpr* script is installed that uses ssh to send the print data to the qlmux_proxy container.
+```
+#!/bin/sh
+ssh -p 9122 -o StrictHostKeyChecking=no racedb@172.17.0.1 qllabels ${1} 
+```
+
+N.b. 172.17.0.1 is the default address of the host machine on the docker0 network.
+
+
+### Table vs Kiosk
+- Table - RaceDB should be configured to use 127.0.0.1
+- Kiosk - RaceDB should be configured to use 127.0.0.2
+
+N.b. The Table vs Kiosk is a convention, there is no difference in the qlmux_proxy application and this could just be two
+tables or kiosks.
+
+
+## Backup
+The database is NOT backed up to the */racedb-data/* directory every time the container is started.
+
+This can be disabled by removing this file: 
+```
+    ./racedb-data/.NOBACKUP
+```
 
