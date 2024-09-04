@@ -22,6 +22,7 @@ CONTAINER = $(shell basename $(CURDIR))
 # Make the container name available to the docker-compose, note that this is the default container name
 # and can be overridden by setting the CONTAINER variable in the docker.env or $(CONTAINER).env file
 export CONTAINER_NAME := $(CONTAINER)
+export IMAGE_NAME := $(IMAGE)
 
 # Define the image name.
 IMAGE = $(shell basename $(CURDIR)):private
@@ -53,9 +54,11 @@ test:
 	@echo DOCKERBUILDARGS:$(DOCKERBUILDARGS)
 	@echo CSRF_TRUSTED_ORIGINS:$(CSRF_TRUSTED_ORIGINS)
 	@echo HOSTNAME: $(HOSTNAME)
-	echo
+	#echo
+	#@env
 
 # build the image
+rebuild: really-clean build
 build:
 	echo BUILD
 	if [ -s 'Dockerfile' ]; then docker build ${DOCKERBUILDARGS} --tag $(IMAGE) .;  fi
@@ -63,10 +66,10 @@ build:
 
 # start the container
 up: build
-	docker compose up
-
-upd: build
 	docker compose up -d
+
+upw: build
+	docker compose up
 
 # stop the container
 down:
