@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  hello-world:
+    image: hello-world
+    container_name: ${CONTAINER_NAME}
+    hostname: ${HOSTNAME}
+

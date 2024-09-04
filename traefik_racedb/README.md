@@ -105,6 +105,18 @@ export NAMECHEAP_API_USER=YOUR_NAMECHEAP_USERNAME
 export NAMECHEAP_API_KEY=f1282039d149419ba1ae8a38d79e3180
 ```
 
+## systemd-resolved 
+The *systemd-resolved* can be used to provide a local DNS server for other clients on the local network.
+
+In the /etc/systemd/resolved.conf file add the following lines (with your IP address):
+```
+DNSStubListenerExtra=192.168.40.51
+```
+N.b. This is a recent change to the systemd-resolved service. Testing with Ubuntu 24.04, systemd 247.
+
+## Client DNS
+The client DNS should be set to the IP address of the server running the *systemd-resolved* service.
+
 
 ## Makefile
 

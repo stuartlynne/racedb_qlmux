@@ -63,6 +63,9 @@ build:
 
 # start the container
 up: build
+	docker-compose up
+
+upd: build
 	docker-compose up -d
 
 # stop the container
