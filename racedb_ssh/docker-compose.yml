@@ -40,10 +40,11 @@
 version: '3.6'
 
 services:
+  # Postgres container to support racedb
   db:
     image: postgres:15-alpine
     restart: always
-    container_name: postgresql_racedb_app
+    container_name: postgresql_racedb
     environment:
       POSTGRES_PASSWORD: 5wHYUQ9qmttpq58EV4EG
     networks:
@@ -55,10 +56,11 @@ services:
       - ./postgresql-racedb-data:/var/lib/postgresql/data
       - ./postgresql-racedb-varrun:/var/run/postgresql
 
+  
   racedb:
-    image: racedb_qllabels:private
+    image: ${IMAGE}
     restart: always
-    container_name: ${CONTAINER_NAME}
+    container_name: ${CONTAINER}
     environment:
       - RACEDB_PORT=${RACEDB_PORT}
       - RFID_READER_HOST=${RFID_READER_HOST}
