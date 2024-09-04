@@ -17,8 +17,9 @@ RUN apk add --no-cache openssh-client ca-certificates bash make
 
 # Install qllabels if that is preferred
 #RUN cd / && git clone https://github.com/stuartlynne/qllabels.git 
-RUN cd / && git clone https://github.com/stuartlynne/rfidproxy.git 
 #RUN cd /qllabels && make install 
+RUN cd / && git clone https://github.com/stuartlynne/rfidproxy.git 
+RUN cd /rfidproxy && make install 
 
 # Append CSRF_TRUSTED_ORIGINS to RaceDB	Settings, 
 # doing it in csrf.py to get the quoting right and support multiple URL's.
