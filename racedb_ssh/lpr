@@ -1,1 +1,7 @@
-../racedb_scripts/lpr
+#!/bin/sh
+
+# uncomment to save args and data file
+#echo ${*} > /tmp/args.txt
+#cat > /tmp/stdin.txt
+set -x
+ssh -p 9122 -o StrictHostKeyChecking=no racedb@172.17.0.1 qllabels ${1} 
