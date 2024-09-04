@@ -1,11 +1,11 @@
 
-version: '3.4'
+version: '3.8'
 
 services:
 
     qlmux_proxy:
-        image: qlmux_proxy:private
-        container_name: ${CONTAINER_NAME}
+        image: ${IMAGE}
+        container_name: ${CONTAINER}
         hostname: ${HOSTNAME}
         restart: always
         network_mode: host
