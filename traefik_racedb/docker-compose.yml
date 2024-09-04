@@ -1,10 +1,10 @@
 # N.b. The docker.env file is sourced in the Makefile to allow docker-compose
 # to interpolate variables here in the docker-compose.yml file.
-version: '3.6'
+version: '3.8'
 services:
   reverse-proxy:
     image: traefik:v3.0
-    container_name: ${CONTAINER_NAME}
+    container_name: ${CONTAINER}
     restart: always
     logging:
       options:
