@@ -56,7 +56,7 @@ services:
       - ./postgresql-racedb-varrun:/var/run/postgresql
 
   racedb:
-    image: racedb_qllabels:private
+    image: ${IMAGE}
     restart: always
     container_name: ${CONTAINER_NAME}
     environment:
