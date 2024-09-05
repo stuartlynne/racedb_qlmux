@@ -81,8 +81,8 @@ services:
       - ./postgresql-racedb-varrun:/var/run/postgresql
       - ./racedb-data:/racedb-data
       - ./lpr:/usr/local/bin/lpr
-      - ./02-rfidproxy.sh:/docker-entrypoint-init.d/02-rfidproxy.sh
-      - ./30-backup.sh:/docker-entrypoint-init.d/30-backup.sh
+      - ../racedb_scripts/02-rfidproxy.sh:/docker-entrypoint-init.d/02-rfidproxy.sh
+      - ../racedb_scripts/30-backup.sh:/docker-entrypoint-init.d/30-backup.sh
 
 
 volumes:

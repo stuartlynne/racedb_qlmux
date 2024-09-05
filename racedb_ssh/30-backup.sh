@@ -1,1 +1,0 @@
-../racedb_scripts/30-backup.sh
