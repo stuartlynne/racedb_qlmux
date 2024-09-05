@@ -114,8 +114,102 @@ N.b. clients on the Ethernet do not have Internet access.
     - Click on "Privacy and Security" on the top right.Inside the center menu, click "Security".Go to chrome://settings
     - find "Use secure connections to look up sites" and turn it off.
 
-## Web Pages
+## racedb\_qlmux install
 
+### Clone
+```
+git clone https://github.com/stuartlynne/racedb_qlmux.git
+```
+
+## Project outline
+
+```
+/racedb_qlmux
+  |-- racedb_scripts
+  |-- qlmux_proxy
+  |-- traefik_racedb
+  |-- racedb_qllabels
+  |-- racedb_qllabels/racedb-data
+  |-- racedb_ssh
+  |-- racedb_ssh/racedb-data
+```
+
+## qlmux\_proxy
+
+- build and start container
+```
+cd qlmux_proxy
+make up logs
+```
+
+## traefik
+
+- edit docker.env, set your email, dns provider, domain, hostnames, etc.
+- sample
+```
+# Email
+export TRAEFIK_EMAIL=stuart.lynne@gmail.com
+export TRAEFIK_DNS_PROVIDER=namecheap
+export WILDCARD_DOMAIN=*.wimsey.online
+
+# Router and port hostnames and ports
+export RACEDB_HOSTNAME="racedb.wimsey.online"
+export RACEDB_PORT=9080
+export QLMUXPROXY_HOSTNAME="qlmuxproxy.wimsey.online"
+export QLMUXPROXY_PORT=9180
+
+
+# Traefik configuration
+export TRAEFIK_LOG_LEVEL=DEBUG
+export TRAEFIK_DNS_DELAY_BEFORE_CHECK=60
+```
+
+- setup dnschallange.env, you will need your DNS provider username and api key.
+```
+cd traefik
+cp dnschallange.env-template dnschallenge.env
+vi dnschallange.env
+```
+
+- sample, this is for namecheap, other providers may be different:
+```
+# Namecheap configuration
+NAMECHEAP_API_USER=YOUR_NAMECHEAP_USERNAME
+NAMECHEAP_API_KEY=f1282039d149419ba1ae8a38d79e3180
+```
+- build and start container
+```
+cd traefik
+make up logs
+```
+
+
+## racedb\_ssh
+- edit docker.env, add fully qualified hostname to CSRF\_TRUSTED\_ORIGINS
+```
+cd racedb_ssh
+vi docker.env
+```
+- sample
+```
+# This will be added to the /RaceDB/RaceDB/settings.py file.
+# It is used to set the CSRF_TRUSTED_ORIGINS variable in the Django settings file.
+# This is required if using a proxy to allow https access.
+# The value is a comma separated list of trusted origins and will be added to the settings file as:
+#  CSRF_TRUSTED_ORIGINS = ['https://racedb.wimsey.dev', 'https://racedb.wimsey.pro'] by the csrf.py script.
+#export DOCKERBUILDARGS=--build-arg "CSRF_TRUSTED_ORIGINS=https://racedb.wimsey.dev,https://racedb.wimsey.pro,https://racedb.wimsey.online"
+export DOCKERBUILDARGS=--build-arg "CSRF_TRUSTED_ORIGINS=https://racedb.wimsey.online"
+```
+- build and start container
+```
+cd traefik
+make up logs
+```
+
+## Web Pages
+Verify that the following are available in Firefox or Chrome:
+- on the racedb linux host (e.g. console)
+- on registration clients (e.g. Chromebooks)
 ### Racedb
 - http://192.168.40.51:9080/RaceDB
 - https://racedb.wimsey.online/RaceDB
