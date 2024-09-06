@@ -1,4 +1,4 @@
-# racedb_qlmux/racedb_qllabels container
+# racedb/_qlmux/racedb\_qllabels container
 
 ## Overview
 This container is set up to use:
@@ -19,16 +19,16 @@ To use this file, you need to set the following environment variables in a .env 
   RFID_RECEIVER_SENSITIVITY=20
   CSRF_TRUSTED_ORIGINS=https://racedb.example.com
 ```
-N.b. The TRANSMIT_POWER and RECEIVER_SENSITIVITY are for the Impinj reader and should be set to the values for your reader
+N.b. The TRANSMIT\_POWER and RECEIVER\_SENSITIVITY are for the Impinj reader and should be set to the values for your reader
 and the RFID wands in use.
 
 
 
 ## csrf.py
 
-This is a simple script in the Dockerfile to append the CSRF_TRUSTED_ORIGINS to the settings.py file.
+This is a simple script in the Dockerfile to append the CSRF\_TRUSTED\_ORIGINS to the settings.py file.
 
-The CSRF_TRUSTED_ORIGINS needs to be set in the *docker.env* file.
+The CSRF\_TRUSTED\_ORIGINS needs to be set in the *docker.env* file.
 
 The script is run when the private RaceDB image is built by docker.
 
@@ -48,10 +48,10 @@ RUN /csrf.sh
 
 ## Printer Configuration in RaceDB
 
-*RaceDB* needs to be configured to send print data to the qlmux_proxy application. This is done by
-configuring the LP print command in Systeminfo->Printer Configuration. 
+*RaceDB* needs to be configured to send print data to the qlmux\_proxy application. This is done by
+configuring the LP print command in Systeminfo\->Printer Configuration. 
 
-A simple *lpr* script is installed that uses ssh to send the print data to the qlmux_proxy container.
+A simple *lpr* script is installed that uses ssh to send the print data to the qlmux\_proxy container.
 ```
 #!/bin/sh
 ssh -p 9122 -o StrictHostKeyChecking=no racedb@172.17.0.1 qllabels ${1} 
@@ -64,8 +64,19 @@ N.b. 172.17.0.1 is the default address of the host machine on the docker0 networ
 - Table - RaceDB should be configured to use 127.0.0.1
 - Kiosk - RaceDB should be configured to use 127.0.0.2
 
-N.b. The Table vs Kiosk is a convention, there is no difference in the qlmux_proxy application and this could just be two
+N.b. The Table vs Kiosk is a convention, there is no difference in the qlmux\_proxy application and this could just be two
 tables or kiosks.
+
+## Import of existing data
+
+To import an existing JSON data file:
+```
+cd racedb_ssh
+make down
+cp racedb-backup-20240830-102354.json racedb_data/racedb-import.json
+make up logs
+```
+
 
 
 ## Backup
