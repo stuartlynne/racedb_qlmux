@@ -113,6 +113,12 @@ N.b. clients on the Ethernet do not have Internet access.
     - Go to chrome://settings
     - Click on "Privacy and Security" on the top right.Inside the center menu, click "Security".Go to chrome://settings
     - find "Use secure connections to look up sites" and turn it off.
+- Disable password checks
+    - Go to chrome://settings
+    - privacy and security / sync services / disable password checks
+
+N.b. Chromebooks are used for registration and results. They do not have internet access. Set up in this
+fashion will be insecure for normal use.
 
 ## racedb\_qlmux install
 
