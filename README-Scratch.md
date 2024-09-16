@@ -78,6 +78,10 @@ N.b. clients on the Ethernet do not have Internet access.
 | Ethernet | 192.168.40.51/24 | no gateway |
 | Wireguard | 192.168.250.51/24 | no gateway |
 
+N.b. ensure that the local Ethernet (used for access to printers and rfid reader) DO NOT have a gateway set. 
+
+N.b. only one of WiFi or USB0 should be used at a time, not both. Just use default DHCP settings, possibly with static DNS (e.g. 1.1.1.1, 8.8.8.8).
+
 
 ### Settings
 - power settings - never sleep for anything
