@@ -1,4 +1,5 @@
-FROM esitarski/racedb:v3.0.98-20240320103427
+#FROM esitarski/racedb:v3.0.98-20240320103427
+FROM esitarski/racedb:latest
 
 # CSRF_TRUSTED_ORIGINS is set in docker.env via DOCKERBUILDARGS
 ARG CSRF_TRUSTED_ORIGINS
