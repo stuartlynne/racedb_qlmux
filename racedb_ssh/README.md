@@ -72,11 +72,9 @@ tables or kiosks.
 To import an existing JSON data file:
 ```
 cd racedb_ssh
-make down
 cp racedb-backup-20240830-102354.json racedb_data/racedb-import.json
-make up logs
+make down up logs
 ```
-
 
 
 ## Backup
