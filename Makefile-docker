@@ -57,7 +57,7 @@ test:
 
 # build the image
 rebuild: really-clean build
-nocahce:
+nocache:
 	echo BUILD
 	if [ -s 'Dockerfile' ]; then docker build --no-cache ${DOCKERBUILDARGS} --tag $(IMAGE) .;  fi
 
