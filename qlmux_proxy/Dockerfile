@@ -11,6 +11,11 @@ RUN apk add --no-cache bash vim git less busybox-extras netcat-openbsd net-snmp-
 RUN apk add --virtual build-deps gcc python3-dev musl-dev 
 RUN apk add jpeg-dev zlib-dev libjpeg 
 
+# add missing Helvetica font
+RUN apk --update --upgrade --no-cache add fontconfig ttf-freefont font-noto terminus-font \ 
+	&& fc-cache -f \ 
+	&& fc-list | sort 
+
 
 # install openssh and generate keys
 RUN apk add openssh
