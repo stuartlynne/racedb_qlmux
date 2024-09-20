@@ -39,9 +39,23 @@ RUN cd /brother_ql && python3 setup.py install
 RUN cd / && git clone https://github.com/stuartlynne/qllabels.git 
 RUN cd /qllabels && make install 
 
-# pysnmp-lextudio is the current version of pysnmp, supports SNMP broadcast 
+# pysnmp-lextudio was the current version of pysnmp, supports SNMP broadcast 
 # it does not install properly via setup.py
-RUN python3 -m pip install pysnmp-lextudio deepdiff
+# pysnmp-lextudio has be renamed back to pysnmp, but the last version in pypi.org does not
+# work with the current pyasn1, so we need to install the last version that does work
+# pyasn1 0.6.0 needs to be installed first, 0.6.1 does not work, for testing take race_proxy from entrypoint
+#RUN python3 -m pip install pyasn1==0.6.0
+#RUN python3 -m pip install pysnmp-lextudio 
+
+# this is now the correct version of pysnmp 
+# trying to build pytest.
+RUN python3 -m pip install pysnmp 
+
+#RUN python3 -m pip pytest
+#RUN python3 -m pip install pysnmp 
+
+RUN python3 -m pip install deepdiff
+
 
 # install qlmux_proxy
 run python3 -m pip install --no-cache numpy
