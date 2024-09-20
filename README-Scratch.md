@@ -46,6 +46,18 @@ N.b. Generally I use older laptops for this purpose, as they are less expensive 
 Replacing a rain-damaged laptop for a few hundred dollars is less painful than a new laptop. And for this purpose
 is more than adequate. 
 
+## GPT Issue
+Some older laptops cannot boot properly from a GPT partitioned disk. This is a problem with the BIOS and not the OS.
+
+From [forums linux mint](https://www.dell.com/community/Inspiron/Inspiron-15-3521-UEFI-Boot-issues/td-p/6093661)
+
+To avoid:
+- prior to install, use gparted to format the entire disk as one partition MSDOS.
+- when selecting the disk for install, check "something else"
+- select the partition and format as ext4
+- ignore complaint about UEIF boot partition 
+
+
 ### Linux
 - Linux Mint 22
 - auto login
