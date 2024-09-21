@@ -56,6 +56,9 @@ services:
       - ./postgresql-racedb-data:/var/lib/postgresql/data
       - ./postgresql-racedb-varrun:/var/run/postgresql
 
+    ports:
+      - 5432:5432
+
   
   racedb:
     image: ${IMAGE}
