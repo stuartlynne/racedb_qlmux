@@ -33,6 +33,8 @@ RUN passwd -d racedb
 
 RUN python3 -m pip install --upgrade pip
 
+RUN python3 -m pip install MarkupSafe
+
 # Pillow is a dependency of brother_ql, but does not install properly via setup.py
 RUN python3 -m pip install Pillow
 
@@ -54,7 +56,7 @@ RUN cd /qllabels && make install
 
 # this is now the correct version of pysnmp 
 # trying to build pytest.
-RUN python3 -m pip install pysnmp 
+RUN python3 -m pip install pysnmp==7.1.4
 
 #RUN python3 -m pip pytest
 #RUN python3 -m pip install pysnmp 
