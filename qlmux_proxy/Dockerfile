@@ -3,7 +3,19 @@
 
 #FROM python:3
 #FROM frolvlad/alpine-python3:latest
-FROM python:3.10.0-alpine
+#FROM python:3.10.0-alpine
+FROM python:3.12-alpine
+
+# Install required build dependencies
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    linux-headers \
+    libffi-dev \
+    gcc \
+    musl-dev \
+    python3-dev \
+    && pip install psutil \
+    && apk del .build-deps
 
 # update and get extra utilities
 #RUN apt-get update && apt-get install -y vim less psmisc netcat-openbsd telnet libsnmp-dev pdftk ghostscript dos2unix
@@ -33,10 +45,12 @@ RUN passwd -d racedb
 
 RUN python3 -m pip install --upgrade pip
 
-RUN python3 -m pip install MarkupSafe
+RUN python3 -m pip install MarkupSafe --root-user-action=ignore
 
 # Pillow is a dependency of brother_ql, but does not install properly via setup.py
-RUN python3 -m pip install Pillow
+RUN python3 -m pip install Pillow --root-user-action=ignore
+
+RUN python3 -m pip install setuptools --root-user-action=ignore
 
 # the pypi version of brother_ql is out of date, so we need to install from github
 RUN cd / && git clone https://github.com/pklaus/brother_ql.git
@@ -56,16 +70,24 @@ RUN cd /qllabels && make install
 
 # this is now the correct version of pysnmp 
 # trying to build pytest.
-RUN python3 -m pip install pysnmp==7.1.4
+#RUN python3 -m pip install pysnmp==7.1.4 --root-user-action=ignore
+RUN python3 -m pip install pysnmp --root-user-action=ignore
 
 #RUN python3 -m pip pytest
 #RUN python3 -m pip install pysnmp 
 
-RUN python3 -m pip install deepdiff
+RUN python3 -m pip install deepdiff --root-user-action=ignore
+RUN python3 -m pip install pyroute2 --root-user-action=ignore
+RUN python3 -m pip install icmplib --root-user-action=ignore
+RUN python3 -m pip install wireguard-tools --root-user-action=ignore
+RUN python3 -m pip install psutil --root-user-action=ignore
+RUN python3 -m pip install tabulate --root-user-action=ignore
+RUN python3 -m pip install zeroconf --root-user-action=ignore
+RUN python3 -m pip install colored --root-user-action=ignore
 
 
 # install qlmux_proxy
-run python3 -m pip install --no-cache numpy
+run python3 -m pip install --no-cache numpy --root-user-action=ignore
 RUN cd / && git clone https://github.com/stuartlynne/qlmux_proxy.git 
 RUN cd /qlmux_proxy && make install 
 
