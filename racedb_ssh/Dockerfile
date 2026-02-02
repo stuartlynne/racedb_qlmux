@@ -3,7 +3,7 @@ FROM esitarski/racedb:latest
 
 # CSRF_TRUSTED_ORIGINS is set in docker.env via DOCKERBUILDARGS
 ARG CSRF_TRUSTED_ORIGINS
-ENV CSRF_TRUSTED_ORIGINS $CSRF_TRUSTED_ORIGINS
+ENV CSRF_TRUSTED_ORIGINS=$CSRF_TRUSTED_ORIGINS
 ENV TIME_ZONE=America/Vancouver
 
 # Add ssh to allow ssh access to qlmux_proxy if that is preferred

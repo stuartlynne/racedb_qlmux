@@ -37,7 +37,6 @@
 #   RFID_RECEIVER_SENSITIVITY=20
 #   CSRF_TRUSTED_ORIGINS=https://racedb.example.com
 
-version: '3.6'
 
 services:
   # Postgres container to support racedb
@@ -52,7 +51,6 @@ services:
     hostname: postgresql_db_app
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - ./postgresql-racedb-data:/var/lib/postgresql/data
       - ./postgresql-racedb-varrun:/var/run/postgresql
 
@@ -76,12 +74,13 @@ services:
       - ${RACEDB_PORT}:8000
     hostname: ${RACEDB_HOSTNAME}
     networks:
-      - racedb
+      - ${NETWORK}
+    extra_hosts:
+      - "qlmux_proxy:host-gateway"
     depends_on:
       - db
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - ./postgresql-racedb-data:/var/lib/postgresql/data
       - ./postgresql-racedb-varrun:/var/run/postgresql
       - ./racedb-data:/racedb-data
@@ -96,4 +95,3 @@ volumes:
 
 networks:
   racedb:
-
