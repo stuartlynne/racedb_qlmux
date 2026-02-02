@@ -37,6 +37,9 @@ HOSTNAME = $(shell hostname)
 
 .PHONY: all build up down clean really-clean bash logs test
 
+COMPOSE ?= sudo docker compose
+DOCKER ?= sudo docker
+
 all:
 	@echo "make build - build $(IMAGE) image"
 	@echo "make up - start $(CONTAINER) container"
@@ -54,6 +57,7 @@ test:
 	@echo DOCKERBUILDARGS:$(DOCKERBUILDARGS)
 	@echo CSRF_TRUSTED_ORIGINS:$(CSRF_TRUSTED_ORIGINS)
 	@echo HOSTNAME: $(HOSTNAME)
+	@echo NETWORK:$(NETWORK)
 	#echo
 	#@env
 
@@ -66,9 +70,20 @@ build:
 	echo BUILD
 	if [ -s 'Dockerfile' ]; then docker build ${DOCKERBUILDARGS} --tag $(IMAGE) .;  fi
 
+network: ## Create networks
+	if [ -n "$(NETWORK)" ]; then \
+		echo network: $(net); \
+		$(DOCKER) network inspect $(NETWORK) > /dev/null 2>&1 || $(DOCKER) network create $(NETWORK) || true; \
+	fi
+	@if [ -n "$(NETWORKS)" ]; then \
+		for net in $(NETWORKS); do \
+			echo network: $(net); \
+			$(DOCKER) network inspect $$net > /dev/null 2>&1 || $(DOCKER) network create $$net || true; \
+		done; \
+	fi
 
 # start the container
-up: build
+up: network build
 	docker compose up -d
 
 upw: build
