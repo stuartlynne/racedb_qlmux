@@ -1,9 +1,8 @@
 # N.b. The docker.env file is sourced in the Makefile to allow docker-compose
 # to interpolate variables here in the docker-compose.yml file.
-version: '3.8'
 services:
   reverse-proxy:
-    image: traefik:v3.0
+    image: traefik:v3.6.7
     container_name: ${CONTAINER}
     restart: always
     logging:
@@ -15,6 +14,7 @@ services:
     # These are used to configure the DNS challenge for Let's Encrypt and should
     # be kept secret, do not check into archive or version control.
     env_file:
+    - traefik_racedb.env
     - dnschallenge.env
 
     command:
@@ -35,9 +35,10 @@ services:
     network_mode: host  # Run Traefik in host networking mode, required for qlmuxproxy to work
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./letsencrypt:/letsencrypt
-      - ./logs:/logs
+      - /srv/${CONTAINER}/letsencrypt:/letsencrypt
+      - /srv/${CONTAINER}/logs:/logs
     # Label configuration is one of several options for defining Traefik routers and services.
     # The dynamic configuration method is cleaner, but this allows us to define the hostname
     # and ports in the traefik.env file. 
