@@ -16,7 +16,6 @@ RUN apk add --no-cache --virtual .build-deps \
     gcc \
     musl-dev \
     python3-dev \
-    && pip install psutil \
     && apk del .build-deps
 
 # update and get extra utilities
@@ -56,12 +55,13 @@ RUN apk add py3-pip py3-markupsafe \
     py3-tabulate \
     py3-deepdiff \
     py3-pdf2image \
-    py3-pillow
+    py3-pillow 
+    	
 ENV PATH=/usr/bin:$PATH
 #RUN apk add py3-setuptools
 
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install setuptools 
+RUN python3 -m pip install --upgrade pip --root-user-action=ignore
+RUN python3 -m pip install setuptools  --root-user-action=ignore
 #RUN python3 -m pip install MarkupSafe --root-user-action=ignore
 
 # Pillow comes from apk (py3-pillow) to ensure FreeType support on Alpine
@@ -89,8 +89,8 @@ RUN cd /qllabels && make install
 # pysnmp-lextudio has be renamed back to pysnmp, but the last version in pypi.org does not
 # work with the current pyasn1, so we need to install the last version that does work
 # pyasn1 0.6.0 needs to be installed first, 0.6.1 does not work, for testing take race_proxy from entrypoint
-RUN python3 -m pip install pyasn1==0.6.0
-RUN python3 -m pip install pysnmp-lextudio 
+RUN python3 -m pip install pyasn1==0.6.0 --root-user-action=ignore
+RUN python3 -m pip install pysnmp-lextudio  --root-user-action=ignore
 
 # this is now the correct version of pysnmp 
 # trying to build pytest.

@@ -12,9 +12,15 @@ services:
         hostname: ${HOSTNAME}
         restart: always
         network_mode: host
+        logging:
+          driver: "json-file"
+          options:
+            max-size: "10m"
+            max-file: "3"
+        labels:
+            - "traefik.enable=false"
         environment:
             PYTHONUNBUFFERED: 1
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /etc/timezone:/etc/timezone:ro
-
