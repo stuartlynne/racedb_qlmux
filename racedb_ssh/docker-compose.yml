@@ -43,6 +43,11 @@ services:
   db:
     image: postgres:15-alpine
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     container_name: postgresql_racedb
     environment:
       POSTGRES_PASSWORD: 5wHYUQ9qmttpq58EV4EG
@@ -61,6 +66,11 @@ services:
   racedb:
     image: ${IMAGE}
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     container_name: ${CONTAINER}
     environment:
       - RACEDB_PORT=${RACEDB_PORT}
