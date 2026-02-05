@@ -3,12 +3,12 @@ SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 .DEFAULT_GOAL := help
 
-CONTAINER := $(notdir $(CURDIR))
+export CONTAINER := $(notdir $(CURDIR))
 ENV       := $(CONTAINER).env
-HOSTNAME  := $(shell hostname -s 2>/dev/null || hostname)
+export HOSTNAME  := $(shell hostname -s 2>/dev/null || hostname)
 
 # Image name (override with: make IMAGE=foo:tag up)
-IMAGE ?= $(CONTAINER):private
+export IMAGE ?= $(CONTAINER):private
 
 # Load per-project env into make, and (optionally) export to docker compose
 -include docker.env
@@ -18,10 +18,23 @@ export CONTAINER_NAME := $(CONTAINER)
 export IMAGE_NAME     := $(IMAGE)
 export HOSTNAME
 
-COMPOSE ?= sudo docker compose
-DOCKER ?= sudo docker
+SRVCONTAINER ?= /srv/$(CONTAINER)
+SRVDIR ?= /srv
+
+#COMPOSE ?= docker compose
+#DOCKER ?= docker
+
+#COMPOSE ?= sudo docker compose
+#DOCKER ?= sudo docker
+
+DOCKER ?= bash -c 'docker info >/dev/null 2>&1 || { echo "ERROR: user is not root and not in docker group"; exit 1; }; exec docker "$$@"' --
+COMPOSE ?= bash -c 'docker info >/dev/null 2>&1 || { echo "ERROR: user is not root and not in docker group"; exit 1; }; exec docker compose "$$@"' --
+
+
+
 # First service from docker-compose.yml (override with: make SERVICE=zwave-js-ui logs)
-SERVICE ?= $(shell $(COMPOSE) config --services 2>/dev/null | head -n 1)
+#SERVICE ?= $(shell $(COMPOSE) config --services 2>/dev/null | head -n 1)
+SERVCICE=$(CONTAINER)
 
 .PHONY: help test build nocache pull up upw down restart clean cleanv really-clean ps logs bash sh config srvdirs cfgfiles scripts
 
@@ -32,15 +45,19 @@ test: ## Show key vars
 	@echo "CONTAINER=$(CONTAINER)"
 	@echo "SERVICE=$(SERVICE)"
 	@echo "IMAGE=$(IMAGE)"
+	@echo "IMAGE_NAME=$(IMAGE_NAME)"
 	@echo "DOCKERBUILDARGS=$(DOCKERBUILDARGS)"
 	@echo "HOSTNAME=$(HOSTNAME)"
 	@echo "DIRS=$(SRV_DIRS)"
-	@echo "CFGFILES=$(CFG_FILES)"
+	@echo "CFG_FILES=$(CFG_FILES)"
+	@echo "CFGFILES=$(CFGFILES)"
 	@echo "SCRIPTS=$(SCRIPTS)"
-	@echo "COPYTARGET=$(COPYTARGET)"
+	@echo "SRVDIR=$(SRVDIR)"
+	@echo "SRVCONTAINER=$(SRVCONTAINER)"
+	@echo "NETWORKS=$(NETWORKS)"
 
 build: ## Build local image if Dockerfile exists
-	@if [[ -f Dockerfile ]]; then $(DOCKER) build $(DOCKERBUILDARGS) -t $(IMAGE) .; fi
+	if [[ -f Dockerfile ]]; then $(DOCKER) build $(DOCKERBUILDARGS) -t $(IMAGE) .; fi
 
 nocache: ## Build image with --no-cache
 	@ if [[ -f Dockerfile ]]; then $(DOCKER) build --no-cache $(DOCKERBUILDARGS) -t $(IMAGE) .; fi
@@ -57,13 +74,19 @@ network: ## Create networks
 	fi
 
 up: scripts cfgfiles network build ## Start containers in background
-	@$(COMPOSE) up -d
+	$(COMPOSE) up -d
 
 upw: build ## Start containers in foreground
 	@$(COMPOSE) up
 
 down: ## Stop/remove containers + networks (keeps volumes)
 	@$(COMPOSE) down --remove-orphans
+
+start:
+	@$(DOCKER) start $(CONTAINER_NAME)
+
+stop:
+	@$(DOCKER) stop $(CONTAINER_NAME)
 
 restart: ## Restart services
 	@$(COMPOSE) restart
@@ -82,34 +105,41 @@ ps: ## Show status
 	@$(COMPOSE) ps
 
 logs: ## Follow logs
-	@$(COMPOSE) logs -f --tail=200 $(SERVICE)
+	echo CONTAINER: $(CONTAINER)
+	$(DOCKER) logs -f --tail=200 $(CONTAINER)
 
-bash: ## Exec bash (or sh) in SERVICE
-	$(COMPOSE) exec $(SERVICE) bash || $(COMPOSE) exec $(SERVICE) sh
+bash: ## Exec bash (or sh) in CONTAINER
+	echo CONTAINER: $(CONTAINER)
+	$(DOCKER) exec -it $(CONTAINER) bash #|| $(COMPOSE) exec $(CONTAINER) sh
 
-sh: ## Exec sh in SERVICE
-	@$(COMPOSE) exec $(SERVICE) sh
+sh: ## Exec sh in CONTAINER
+	@$(COMPOSE) exec-it  $(CONTAINER) sh
 
 config: ## Render resolved compose config
 	@$(COMPOSE) config
 
+# make sure /srv/Makefile-srv and /srv/${CONTAINER} exists
 dirs:
-	@if [ -n "$(SRV_DIRS)" ] ; then sudo mkdir -pv $(SRV_DIRS); fi
+	@if [ ! -e "${SRVCONTAINER}" ] ; then echo mkdir ${SRVCONTAINER};  sudo mkdir -pv ${SRVCONTAINER}; fi
+	@if [ ! -e "${SRVDIR}/Makefile-srv" ] ; then echo cp Makefile-srv ${SRVDIR};  sudo cp -v ../Makefile-srv ${SRVDIR}/; fi
+srv_dirs:
+	@if [ -n "$(SRV_DIRS)" ] ; then echo mkdir ${SRV_DIRS}; sudo mkdir -pv $(SRV_DIRS); fi
 
 scripts: dirs
+	@if [ ! -e "${SRVCONTAINER}/Makefile" ] ; then echo ln -s Makefile-srv; sudo ln -sv ${SRVDIR}/Makefile-srv ${SRVCONTAINER}/Makefile; fi
 	@if [ -n "$(SCRIPTS)" ]; then \
 		for src in $(SCRIPTS); do \
-			dest="$(COPYTARGET)/$$src"; \
-			sudo mkdir -p "$$(dirname "$$dest")"; \
-			sudo cp -va "$$src" "$$dest"; \
+			dest="$(SRVCONTAINER)/$$src"; \
+			sudo mkdir -pv "$$(dirname "$$dest")"; \
+			sudo cp -av "$$src" "$$dest"; \
 			sudo chmod +x "$$dest"; \
 		done; \
 	fi
 cfgfiles: dirs 
-	@if [ -n "$(CFG_FILES)" ]; then \
-		for src in $(CFG_FILES); do \
+	@if [ -n "$(CFG_FILES)" -o -n "${CFGFILES}" ]; then \
+		for src in $(CFG_FILES) ${CFGFILES}; do \
 			if [ -e "$$src" ]; then \
-				dest="$(COPYTARGET)/$$src"; \
+				dest="$(SRVCONTAINER)/$$src"; \
 				sudo mkdir -p "$$(dirname "$$dest")"; \
 				if [ ! -e "$$dest" ]; then sudo cp -va "$$src" "$$dest"; fi; \
 			fi; \

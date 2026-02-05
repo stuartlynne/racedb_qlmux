@@ -1,0 +1,42 @@
+
+
+
+export HOSTNAME  := $(shell hostname -s 2>/dev/null || hostname)
+CONTAINER = $(shell basename $(CURDIR))
+
+export CONTAINER_NAME := $(CONTAINER)
+
+#COMPOSE ?= sudo docker compose
+#DOCKER ?= sudo docker
+DOCKER ?= bash -c 'docker info >/dev/null 2>&1 || { echo "ERROR: user is not root and not in docker group"; exit 1; }; exec docker "$$@"' --
+COMPOSE ?= bash -c 'docker info >/dev/null 2>&1 || { echo "ERROR: user is not root and not in docker group"; exit 1; }; exec docker compose "$$@"' --
+
+
+.PHONY: all test start stop logs bash check list
+
+
+all:
+
+test:
+	@echo HOSTNAME=$(HOSTNAME)
+	@echo CONTAINER_NAME=$(CONTAINER_NAME)
+
+start:
+	@$(DOCKER) start $(CONTAINER_NAME)
+
+stop:
+	@$(DOCKER) stop $(CONTAINER_NAME)
+
+logs:
+	@$(DOCKER) logs --tail 40 -f $(CONTAINER_NAME)
+
+bash:
+	@$(DOCKER) exec -it $(CONTAINER_NAME) /bin/bash
+
+check:
+	@$(DOCKER) ps -a | grep $(CONTAINER_NAME) || true
+
+list:
+	@$(DOCKER) container ls -a
+
+-include Makefile-$(CONTAINER)
