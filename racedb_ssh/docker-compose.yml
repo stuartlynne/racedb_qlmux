@@ -51,8 +51,8 @@ services:
     hostname: postgresql_db_app
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./postgresql-racedb-data:/var/lib/postgresql/data
-      - ./postgresql-racedb-varrun:/var/run/postgresql
+      - /srv/${CONTAINER}/postgresql-racedb-data:/var/lib/postgresql/data
+      - /srv/${CONTAINER}/postgresql-racedb-varrun:/var/run/postgresql
 
     ports:
       - 5432:5432
@@ -81,12 +81,12 @@ services:
       - db
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./postgresql-racedb-data:/var/lib/postgresql/data
-      - ./postgresql-racedb-varrun:/var/run/postgresql
-      - ./racedb-data:/racedb-data
-      - ../racedb_scripts/lpr:/usr/local/bin/lpr
-      - ../racedb_scripts/02-rfidproxy.sh:/docker-entrypoint-init.d/02-rfidproxy.sh
-      - ../racedb_scripts/30-backup.sh:/docker-entrypoint-init.d/30-backup.sh
+      - /srv/${CONTAINER}/postgresql-racedb-data:/var/lib/postgresql/data
+      - /srv/${CONTAINER}/postgresql-racedb-varrun:/var/run/postgresql
+      - /srv/${CONTAINER}/racedb-data:/racedb-data
+      - /srv/${CONTAINER}/scripts/lpr:/usr/local/bin/lpr
+      - /srv/${CONTAINER}/scripts/02-rfidproxy.sh:/docker-entrypoint-init.d/02-rfidproxy.sh
+      - /srv/${CONTAINER}/scripts/30-backup.sh:/docker-entrypoint-init.d/30-backup.sh
 
 
 volumes:
