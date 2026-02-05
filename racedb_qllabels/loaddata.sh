@@ -1,1 +1,0 @@
-../racedb_scripts/loaddata.sh
