@@ -3,7 +3,11 @@
 
 ## Overview
 
-The [RaceDB QLMux Git Archive](https://github.com/stuartlynne/racedb_qlmux) is designed to provide a robust and easily deployable system for running RaceDB with integrated support for Brother QL printers and Impinj RFID readers. This system is ideal for events where efficient management of registration and timing is critical.
+The [RaceDB QLMux Git Archive](https://github.com/stuartlynne/racedb_qlmux) is
+designed to provide a robust and easily deployable system for running RaceDB
+with integrated support for Brother QL printers and Impinj RFID readers. This
+system is ideal for events where efficient management of registration and
+timing is critical.
 
 ### Key Goals:
 - **On-Demand Printing**: Support for on-demand printing of BIB and frame numbers using Brother QL printers.
@@ -11,22 +15,75 @@ The [RaceDB QLMux Git Archive](https://github.com/stuartlynne/racedb_qlmux) is d
 - **Automatic Device Discovery**: Use SNMP to discover and manage multiple Brother QL printers and Impinj RFID readers on the network.
 - **Secure Access**: Provide a reverse proxy for secure *https* access to the RaceDB web interface and QLMux Proxy web status page.
 
-Wimsey and Escape Velocity have been using Impinj RFID readers and Brother QL label printers to support timing and registration since 2014/2015. The use of low-cost RFID tags allowed racers to retain their tags for future events, enabling RaceDB to quickly recognize returning participants.
+Wimsey and Escape Velocity have been using Impinj RFID readers and Brother QL
+label printers to support timing and registration since 2014/2015.The use of
+low-cost RFID tags allowed racers to retain their tags for future events,
+enabling RaceDB to quickly recognize returning participants.
 
-On-demand printing of BIB and frame numbers has significantly reduced the time required for rider registration and check-in at events. These improvements have also decreased the number of volunteers needed. Typically, two or three volunteers can manage the registration and check-in for a 100-200 rider event in less than an hour. With four volunteers, 200-300 riders can be processed in the same time frame. This efficiency assumes approximately 50% pre-registration and 50% day-of registration, with a similar percentage of riders having their own RFID tags.
+On-demand printing of BIB and frame numbers has significantly reduced the time
+required for rider registration and check-in at events. These improvements have
+also decreased the number of volunteers needed. Typically, two or three
+volunteers can manage the registration and check-in for a 100-200 rider event
+in less than an hour. With four volunteers, 200-300 riders can be processed in
+the same time frame. This efficiency assumes approximately 50% pre-registration
+and 50% day-of registration, with a similar percentage of riders having their
+own RFID tags.
+
+## Containers
+### racedb_ssh
+A container with:
+    - PostgreSQL database server
+    - RaceDB application
+    - rfidproxy application
+    - lpr script
+
+The goal is to make RaceDB work with discovered Brother QL printers and Impinj RFID readers
+without having to reconfigure RaceDB for each printer and reader. Also to support multiple printers
+to speed up registration and provide redundancy.
+
+### rfidproxy
+This application listens for connections on port 5084 from RaceDB and proxies them to the
+qlmux_proxy container which will in turn connect to a discovered Impinj RFID reader. If 
+two racedb_ssh containers are running each can connect to a different reader. 
+
+### lpr
+This is a simple script that uses ssh to copy the label file to the qlmux_proxy container and run the QLLabels application.
 
 ## Background
 
-The [racedb_qlmux](https://github.com/stuartlynne/racedb_qlmux) project is a revised version of the older *racedb_qlmuxd* archive. It includes management scripts to support running RaceDB, PostgreSQL, QLMux Proxy, and Traefik in containers on a Linux system.
+The [racedb_qlmux](https://github.com/stuartlynne/racedb_qlmux) project is a
+revised version of the older *racedb_qlmuxd* archive. It includes management
+scripts to support running RaceDB, PostgreSQL, QLMux Proxy, and Traefik in
+containers on a Linux system.
 
-This updated version uses the new *QLMux Proxy*, an enhanced version of qlmuxd, which leverages *SNMP* to find and monitor the status of Brother QL printers and Impinj RFID readers.
+This updated version uses the new *QLMux Proxy*, an enhanced version of qlmuxd,
+which leverages *SNMP* to find and monitor the status of Brother QL printers
+and Impinj RFID readers and *QLLablels*.
 
-If you want to integrate *QLMux Proxy* and *Traefik* into an existing *RaceDB* installation, you can use the provided tools and documentation.
+- provide a web interface for status monitoring
+- discover QL printers and RFID readers
+- proxy print requests from RaceDB to QL printers
+- proxy RFID connections from RaceDB to Impinj readers 
+- monitor network health
 
-## Related Projects
+The *QLLabels* project takes the PDF file provided by the RaceDB label printing 
+and creates a Brother QL compatible raster file for printing. 
+
+New for *2026* QLLables re-images the label to make the BIB numbers about 60% larger. 
+This makes them much easier to read at a distance.
+
+If you want to integrate *QLMux Proxy* and *Traefik* into an existing *RaceDB*
+installation, you can use the provided tools and documentation.
+
+## racedb_qlmux
+
+
+## Repositories 
 
 - **[traefik_racedb](https://github.com/stuartlynne/traefik_racedb)**: Support for QLMux Proxy and Traefik containers to integrate with an existing RaceDB installation.
-- **[qlmux_proxy](https://github.com/stuartlynne/qlmux_proxy)**: The QLMux Proxy application.
+- **[qlmux_proxy](https://github.com/stuartlynne/qlmux_proxy)**: The QLMux Proxy  projectapplication.
+- **[qlmux_proxy](https://github.com/stuartlynne/qllabels)**: The qllabels project.
+- **[qlmux_proxy](https://github.com/stuartlynne/rfidproxy)**: The rfidproxy project.
 - **[racedb_qlmux](https://github.com/stuartlynne/racedb_qlmux)**: A complete set of containers for implementing PostgreSQL, RaceDB, QLMux Proxy, and Traefik.
 
 ## Installation
