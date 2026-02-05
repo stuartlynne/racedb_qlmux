@@ -1,0 +1,16 @@
+
+
+test-racedb:
+	@echo DOCKERBUILDARGS=$(DOCKERBUILDARGS)
+	@echo RACEDB_HOSTNAME=$(RACEDB_HOSTNAME)
+	@echo NETWORK=$(NETWORK)
+	@echo RACEDB_PORT=$(RACEDB_PORT)
+	@echo RFID_READER_HOST=$(RFID_READER_HOST)
+	@echo RFID_TRANSMIT_POWER=$(RFID_TRANSMIT_POWER)
+	@echo RFID_RECEIVER_SENSITIVITY=$(RFID_RECEIVER_SENSITIVITY)
+	@echo VERBOSITY=$(VERBOSITY)
+	@echo RACEDBLOGFILE=$(RACEDBLOGFILE)
+
+dump:
+	docker exec ${CONTAINER} python3 /RaceDB/manage.py dumpdata core --indent 2 | \
+		gzip > ${HOSTNAME}-${CONTAINER}-$$(date +%Y%m%d-%H%M%S).json.gz
