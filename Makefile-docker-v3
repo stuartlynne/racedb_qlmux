@@ -27,8 +27,12 @@ SRVDIR ?= /srv
 #COMPOSE ?= sudo docker compose
 #DOCKER ?= sudo docker
 
-DOCKER ?= bash -c 'docker info >/dev/null 2>&1 || { echo "ERROR: user is not root and not in docker group"; exit 1; }; exec docker "$$@"' --
-COMPOSE ?= bash -c 'docker info >/dev/null 2>&1 || { echo "ERROR: user is not root and not in docker group"; exit 1; }; exec docker compose "$$@"' --
+define DOCKER_CHECK
+@docker info >/dev/null 2>&1 || { echo "ERROR: user is not root and not in docker group"; exit 1; }
+endef
+
+DOCKER ?= docker
+COMPOSE ?= docker compose
 
 
 
@@ -36,7 +40,7 @@ COMPOSE ?= bash -c 'docker info >/dev/null 2>&1 || { echo "ERROR: user is not ro
 #SERVICE ?= $(shell $(COMPOSE) config --services 2>/dev/null | head -n 1)
 SERVCICE=$(CONTAINER)
 
-.PHONY: help test build nocache pull up upw down restart clean cleanv really-clean ps logs bash sh config srvdirs cfgfiles scripts
+.PHONY: help test check build nocache pull up upw down restart clean cleanv really-clean ps logs bash sh config srvdirs cfgfiles scripts
 
 help: ## Show targets
 	@awk 'BEGIN{FS=":.*##"} /^[a-zA-Z0-9_.-]+:.*##/{printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -56,16 +60,19 @@ test: ## Show key vars
 	@echo "SRVCONTAINER=$(SRVCONTAINER)"
 	@echo "NETWORKS=$(NETWORKS)"
 
-build: ## Build local image if Dockerfile exists
+check: ## Verify docker access
+	$(DOCKER_CHECK)
+
+build: check ## Build local image if Dockerfile exists
 	if [[ -f Dockerfile ]]; then $(DOCKER) build $(DOCKERBUILDARGS) -t $(IMAGE) .; fi
 
-nocache: ## Build image with --no-cache
+nocache: check ## Build image with --no-cache
 	@ if [[ -f Dockerfile ]]; then $(DOCKER) build --no-cache $(DOCKERBUILDARGS) -t $(IMAGE) .; fi
 
-pull: ## Pull referenced images
-	@$(COMPOSE) pull
+pull: check ## Pull referenced images
+	$(COMPOSE) pull
 
-network: ## Create networks
+network: check ## Create networks
 	@if [ -n "$(NETWORKS)" ]; then \
 		for net in $(NETWORKS); do \
 			echo network: $(net); \
@@ -73,50 +80,50 @@ network: ## Create networks
 		done; \
 	fi
 
-up: scripts cfgfiles network build ## Start containers in background
+up: check scripts cfgfiles network build ## Start containers in background
 	$(COMPOSE) up -d
 
-upw: build ## Start containers in foreground
-	@$(COMPOSE) up
+upw: check build ## Start containers in foreground
+	$(COMPOSE) up
 
-down: ## Stop/remove containers + networks (keeps volumes)
-	@$(COMPOSE) down --remove-orphans
+down: check ## Stop/remove containers + networks (keeps volumes)
+	$(COMPOSE) down --remove-orphans
 
-start:
-	@$(DOCKER) start $(CONTAINER_NAME)
+start: check
+	$(DOCKER) start $(CONTAINER_NAME)
 
-stop:
-	@$(DOCKER) stop $(CONTAINER_NAME)
+stop: check
+	$(DOCKER) stop $(CONTAINER_NAME)
 
-restart: ## Restart services
-	@$(COMPOSE) restart
+restart: check ## Restart services
+	$(COMPOSE) restart
 
-clean: ## Alias for down (safe)
-	@$(COMPOSE) down --remove-orphans
+clean: check ## Alias for down (safe)
+	$(COMPOSE) down --remove-orphans
 
-cleanv: ## Remove containers + anonymous volumes (safer than down -v)
-	@$(COMPOSE) down --remove-orphans
-	@$(COMPOSE) rm -sfv
+cleanv: check ## Remove containers + anonymous volumes (safer than down -v)
+	$(COMPOSE) down --remove-orphans
+	$(COMPOSE) rm -sfv
 
-really-clean: cleanv ## Also remove local/private image tag
-	@-$(DOCKER) image rm -f $(IMAGE) 2>/dev/null || true
+really-clean: check cleanv ## Also remove local/private image tag
+	-$(DOCKER) image rm -f $(IMAGE) 2>/dev/null || true
 
-ps: ## Show status
-	@$(COMPOSE) ps
+ps: check ## Show status
+	$(COMPOSE) ps
 
-logs: ## Follow logs
+logs: check ## Follow logs
 	echo CONTAINER: $(CONTAINER)
 	$(DOCKER) logs -f --tail=200 $(CONTAINER)
 
-bash: ## Exec bash (or sh) in CONTAINER
-	echo CONTAINER: $(CONTAINER)
+bash: check ## Exec bash (or sh) in CONTAINER
+	@echo CONTAINER: $(CONTAINER)
 	$(DOCKER) exec -it $(CONTAINER) bash #|| $(COMPOSE) exec $(CONTAINER) sh
 
-sh: ## Exec sh in CONTAINER
-	@$(COMPOSE) exec-it  $(CONTAINER) sh
+sh: check ## Exec sh in CONTAINER
+	$(COMPOSE) exec-it  $(CONTAINER) sh
 
-config: ## Render resolved compose config
-	@$(COMPOSE) config
+config: check ## Render resolved compose config
+	$(COMPOSE) config
 
 # make sure /srv/Makefile-srv and /srv/${CONTAINER} exists
 dirs:
