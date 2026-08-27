@@ -98,6 +98,44 @@ services:
       - /srv/${CONTAINER}/scripts/02-rfidproxy.sh:/docker-entrypoint-init.d/02-rfidproxy.sh
       - /srv/${CONTAINER}/scripts/30-backup.sh:/docker-entrypoint-init.d/30-backup.sh
 
+  racedb_mcp:
+    build:
+      context: ${RACEDB_MCP_SOURCE}
+      dockerfile: Dockerfile
+      args:
+        RACEDB_BASE_IMAGE: ${IMAGE}
+    image: ${RACEDB_MCP_IMAGE}
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    container_name: racedb_mcp
+    environment:
+      - DJANGO_SETTINGS_MODULE=RaceDB.settings
+      - PYTHONPATH=/RaceDB
+      - RACEDB_MCP_RACEDB_PATH=/RaceDB
+      - RACEDB_MCP_PUBLIC_URL=${RACEDB_MCP_PUBLIC_URL}
+      - RACEDB_MCP_SQL_SOCKET=/var/run/postgresql
+      - RACEDB_MCP_SQL_DB=racedb
+      - RACEDB_MCP_SQL_USER=racedb
+      - DATABASE_TYPE=psql-local
+      - TIME_ZONE=America/Vancouver
+      - DATETIME_FORMAT=ISO
+      - PYTHONWARNINGS=ignore:Field 'lifespan' has an incomplete definition
+    command: /bin/bash -lc '/bin/bash /docker-entrypoint-init.d/10-configure.sh && exec racedb-mcp --transport streamable-http --host 0.0.0.0 --port 8010'
+    ports:
+      - ${RACEDB_MCP_PORT}:8010
+    hostname: racedb_mcp.local
+    networks:
+      - ${NETWORK}
+    depends_on:
+      - db
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /srv/${CONTAINER}/postgresql-racedb-varrun:/var/run/postgresql
+      - /srv/${CONTAINER}/racedb-data:/racedb-data
 
 volumes:
   postgresql-racedb-data:
