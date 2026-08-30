@@ -15,7 +15,7 @@ RUN apk add --no-cache --virtual .build-deps \
     libffi-dev \
     gcc \
     musl-dev \
-    python3-dev \
+    python3-dev netcat-openbsd \
     && apk del .build-deps
 
 # update and get extra utilities
@@ -113,11 +113,17 @@ RUN cd / && git clone https://github.com/easysnmp/easysnmp.git \
 
 
 # install qlmux_proxy
-run python3 -m pip install --no-cache numpy --root-user-action=ignore
+RUN python3 -m pip install --no-cache numpy --root-user-action=ignore
 RUN cd / && git clone https://github.com/stuartlynne/qlmux_proxy.git 
 RUN cd /qlmux_proxy && make install 
 
+# install brother_ql_web
+RUN cd / && git clone https://github.com/stuartlynne/brother_ql_web_net.git 
+RUN cd /brother_ql_web_net && python3 -m pip install '.[snmp]' --root-user-action=ignore
+
+
+
 # two entry points, one for the proxy, one for the sshd
-ENTRYPOINT ["/bin/sh", "-c", "/usr/sbin/sshd -D -p 9122 -o PermitEmptyPasswords=yes -o PubkeyAuthentication=no -o PermitEmptyPasswords=yes -o PrintMotd=no & race_proxy"]
+ENTRYPOINT ["/bin/sh", "-c", "/usr/sbin/sshd -D -p 9122 -o PermitEmptyPasswords=yes -o PubkeyAuthentication=no -o PermitEmptyPasswords=yes -o PrintMotd=no & race_proxy & brother_ql_web_net --port ${BROTHER_QL_WEB_NET_PORT:-8014}"]
 # for testing
 #ENTRYPOINT ["/bin/sh", "-c", "/usr/sbin/sshd -D -p 9122 -o PermitEmptyPasswords=yes -o PubkeyAuthentication=no -o PermitEmptyPasswords=yes -o PrintMotd=no "]
