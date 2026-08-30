@@ -63,11 +63,11 @@ test: ## Show key vars
 check: ## Verify docker access
 	$(DOCKER_CHECK)
 
-build: check ## Build local image if Dockerfile exists
-	if [[ -f Dockerfile ]]; then $(DOCKER) build $(DOCKERBUILDARGS) -t $(IMAGE) .; fi
+build: check ## Pull latest base and build local image if Dockerfile exists
+	if [[ -f Dockerfile ]]; then $(DOCKER) build --pull $(DOCKERBUILDARGS) -t $(IMAGE) .; fi
 
-nocache: check ## Build image with --no-cache
-	@ if [[ -f Dockerfile ]]; then $(DOCKER) build --no-cache $(DOCKERBUILDARGS) -t $(IMAGE) .; fi
+nocache: check ## Pull latest base and build image with --no-cache
+	@if [[ -f Dockerfile ]]; then $(DOCKER) build --pull --no-cache $(DOCKERBUILDARGS) -t $(IMAGE) .; fi
 
 pull: check ## Pull referenced images
 	$(COMPOSE) pull
