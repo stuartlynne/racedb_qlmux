@@ -59,3 +59,11 @@ services:
       - "traefik.http.routers.qlmuxproxy.service=qlmuxproxy-service"
       - "traefik.http.services.qlmuxproxy-service.loadbalancer.server.port=${QLMUXPROXY_PORT}"
 
+      # qlweb
+      - "traefik.http.routers.qlweb.rule=Host(${QLWEB_HOSTNAME})"
+      - "traefik.http.routers.qlweb.entrypoints=websecure"
+      - "traefik.http.routers.qlweb.tls.certresolver=myresolver"
+      - "traefik.http.routers.qlweb.tls.domains[0].sans=${WILDCARD_DOMAIN}"
+      - "traefik.http.routers.qlweb.service=qlweb-service"
+      - "traefik.http.services.qlweb-service.loadbalancer.server.port=${QLMUXPROXY_PORT}"
+
